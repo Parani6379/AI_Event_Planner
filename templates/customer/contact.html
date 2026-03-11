@@ -1,0 +1,309 @@
+{% extends "customer/base.html" %}
+{% block title %}Contact Us — Event Planner Pro{% endblock %}
+
+{% block content %}
+
+<!-- ── Page Hero ──────────────────────────────────────── -->
+<section class="hero-gradient py-20 text-center">
+    <div class="max-w-3xl mx-auto px-4">
+        <span class="inline-block bg-white bg-opacity-10 border border-white border-opacity-20 text-white text-sm px-4 py-2 rounded-full mb-4">
+            <i class="fas fa-envelope text-yellow-400 mr-2"></i>Get In Touch
+        </span>
+        <h1 class="text-4xl font-black text-white mb-3">Contact Us</h1>
+        <p class="text-purple-200 text-lg">
+            We'd love to hear from you. Reach out for bookings, queries, or just to say hello!
+        </p>
+    </div>
+</section>
+
+<!-- ── Contact Section ───────────────────────────────── -->
+<section class="py-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-10">
+
+            <!-- Contact Info -->
+            <div class="lg:col-span-2 space-y-5">
+                <div>
+                    <h2 class="text-2xl font-black text-gray-800 mb-2">Reach Out to Us</h2>
+                    <p class="text-gray-500 text-sm">
+                        Our team is available Monday to Saturday, 9 AM to 7 PM.
+                    </p>
+                </div>
+
+                <!-- Phone -->
+                <div class="flex items-start gap-4 p-5 bg-purple-50 rounded-2xl border border-purple-100">
+                    <div class="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-phone text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-800">Phone / WhatsApp</p>
+                        <p class="text-purple-600 font-semibold" id="contact-phone">Loading...</p>
+                        <a id="call-link" href="#"
+                           class="text-xs text-gray-500 hover:text-purple-600 mt-1 block">Click to call →</a>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="flex items-start gap-4 p-5 bg-blue-50 rounded-2xl border border-blue-100">
+                    <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-envelope text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-800">Email</p>
+                        <p class="text-blue-600 font-semibold" id="contact-email">Loading...</p>
+                        <a id="email-link" href="#"
+                           class="text-xs text-gray-500 hover:text-blue-600 mt-1 block">Send us an email →</a>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div class="flex items-start gap-4 p-5 bg-green-50 rounded-2xl border border-green-100">
+                    <div class="w-12 h-12 bg-green-600 rounded-2xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-map-marker-alt text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-gray-800">Office Address</p>
+                        <p class="text-gray-600 text-sm" id="contact-address">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Working Hours -->
+                <div class="p-5 bg-gray-50 rounded-2xl border border-gray-100">
+                    <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                        <i class="fas fa-clock text-purple-600"></i>Working Hours
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Monday — Saturday</span>
+                            <span class="font-semibold text-gray-800">9:00 AM — 7:00 PM</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Sunday</span>
+                            <span class="font-semibold text-gray-800">10:00 AM — 5:00 PM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Links -->
+                <div class="flex gap-3">
+                    <a href="#"
+                       class="flex-1 flex items-center justify-center gap-2 py-3 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
+                        <i class="fab fa-facebook-f"></i>Facebook
+                    </a>
+                    <a href="#"
+                       class="flex-1 flex items-center justify-center gap-2 py-3 bg-pink-500 text-white rounded-xl text-sm font-medium hover:bg-pink-600 transition-colors">
+                        <i class="fab fa-instagram"></i>Instagram
+                    </a>
+                    <a id="whatsapp-contact" href="#" target="_blank"
+                       class="flex-1 flex items-center justify-center gap-2 py-3 bg-green-500 text-white rounded-xl text-sm font-medium hover:bg-green-600 transition-colors">
+                        <i class="fab fa-whatsapp"></i>WhatsApp
+                    </a>
+                </div>
+            </div>
+
+            <!-- Contact Form & FAQ -->
+            <div class="lg:col-span-3 space-y-6">
+
+                <!-- Quick Message Form -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="font-bold text-gray-800 text-lg mb-5 flex items-center gap-2">
+                        <i class="fas fa-paper-plane text-purple-600"></i>Send Quick Message
+                    </h3>
+                    <form id="contact-form" onsubmit="sendContactMessage(event)" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Full Name *</label>
+                                <input type="text" name="name" required
+                                       placeholder="Your name"
+                                       class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Phone *</label>
+                                <input type="tel" name="phone" required
+                                       placeholder="Your phone"
+                                       class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Email</label>
+                            <input type="email" name="email"
+                                   placeholder="your@email.com"
+                                   class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Event Type</label>
+                            <select name="event_type"
+                                    class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+                                <option value="">-- Select Event Type --</option>
+                                <option value="Wedding">Wedding</option>
+                                <option value="Temple Festival">Temple Festival</option>
+                                <option value="Reception">Reception</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1">Message *</label>
+                            <textarea name="message" rows="4" required
+                                      placeholder="Tell us about your event requirements..."
+                                      class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400 resize-none"></textarea>
+                        </div>
+                        <button type="submit" id="contact-btn"
+                                class="w-full py-3 bg-purple-600 text-white rounded-xl font-bold text-sm hover:bg-purple-700 transition-colors">
+                            <i class="fas fa-paper-plane mr-2"></i>Send Message
+                        </button>
+                    </form>
+                </div>
+
+                <!-- FAQ -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h3 class="font-bold text-gray-800 text-lg mb-5 flex items-center gap-2">
+                        <i class="fas fa-question-circle text-purple-600"></i>Frequently Asked Questions
+                    </h3>
+
+                    <div class="space-y-3" id="faq-list">
+
+                        <div class="border border-gray-100 rounded-xl overflow-hidden">
+                            <button onclick="toggleFAQ(0)"
+                                    class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors">
+                                <span class="font-semibold text-gray-800 text-sm">How early should I book?</span>
+                                <i class="fas fa-chevron-down text-gray-400 text-sm transition-transform" id="faq-icon-0"></i>
+                            </button>
+                            <div class="hidden px-5 pb-4 text-gray-500 text-sm" id="faq-body-0">
+                                We recommend booking at least 2-4 weeks in advance for small events and 1-3 months ahead for large weddings to ensure availability.
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-100 rounded-xl overflow-hidden">
+                            <button onclick="toggleFAQ(1)"
+                                    class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors">
+                                <span class="font-semibold text-gray-800 text-sm">Do you provide custom designs?</span>
+                                <i class="fas fa-chevron-down text-gray-400 text-sm" id="faq-icon-1"></i>
+                            </button>
+                            <div class="hidden px-5 pb-4 text-gray-500 text-sm" id="faq-body-1">
+                                Yes! We specialize in custom decoration designs tailored to your vision, theme, and budget. Share your ideas and we'll bring them to life.
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-100 rounded-xl overflow-hidden">
+                            <button onclick="toggleFAQ(2)"
+                                    class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors">
+                                <span class="font-semibold text-gray-800 text-sm">What is the advance payment required?</span>
+                                <i class="fas fa-chevron-down text-gray-400 text-sm" id="faq-icon-2"></i>
+                            </button>
+                            <div class="hidden px-5 pb-4 text-gray-500 text-sm" id="faq-body-2">
+                                We require 30-50% advance payment at the time of booking confirmation. The remaining balance is collected on or before the event date.
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-100 rounded-xl overflow-hidden">
+                            <button onclick="toggleFAQ(3)"
+                                    class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors">
+                                <span class="font-semibold text-gray-800 text-sm">Do you travel to other cities?</span>
+                                <i class="fas fa-chevron-down text-gray-400 text-sm" id="faq-icon-3"></i>
+                            </button>
+                            <div class="hidden px-5 pb-4 text-gray-500 text-sm" id="faq-body-3">
+                                Yes, we serve events across nearby districts and cities. Additional transport charges may apply based on the distance. Contact us for details.
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-100 rounded-xl overflow-hidden">
+                            <button onclick="toggleFAQ(4)"
+                                    class="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors">
+                                <span class="font-semibold text-gray-800 text-sm">Can I cancel or reschedule my booking?</span>
+                                <i class="fas fa-chevron-down text-gray-400 text-sm" id="faq-icon-4"></i>
+                            </button>
+                            <div class="hidden px-5 pb-4 text-gray-500 text-sm" id="faq-body-4">
+                                Cancellations must be made at least 7 days before the event. Rescheduling is subject to availability. Please contact us directly for assistance.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Load Contact Info ─────────────────────────────────
+async function loadContactPageInfo() {
+    try {
+        const data = await fetch('/api/customer/contact-info').then(r => r.json());
+        if (!data.success) return;
+        const c = data.data;
+
+        document.getElementById('contact-phone').textContent = c.phone || 'N/A';
+        document.getElementById('contact-email').textContent = c.email || 'N/A';
+        document.getElementById('contact-address').textContent = c.address || 'N/A';
+
+        if (c.phone) {
+            document.getElementById('call-link').href = `tel:${c.phone}`;
+            const clean = c.phone.replace(/\D/g, '');
+            document.getElementById('whatsapp-contact').href =
+                `https://wa.me/91${clean}?text=Hello!%20I%20have%20a%20query.`;
+        }
+        if (c.email) {
+            document.getElementById('email-link').href = `mailto:${c.email}`;
+        }
+    } catch (e) {}
+}
+
+// ── Contact Form Submit ───────────────────────────────
+async function sendContactMessage(e) {
+    e.preventDefault();
+    const form = document.getElementById('contact-form');
+    const btn = document.getElementById('contact-btn');
+    const data = new FormData(form);
+    const payload = Object.fromEntries(data.entries());
+
+    // Build WhatsApp message
+    const waMsg = `Hello! I'm ${payload.name} (${payload.phone}).%0A` +
+        `Event: ${payload.event_type || 'General Inquiry'}%0A` +
+        `Message: ${payload.message}`;
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
+    btn.disabled = true;
+
+    // Get WhatsApp number from contact info and redirect
+    try {
+        const contactData = await fetch('/api/customer/contact-info').then(r => r.json());
+        if (contactData.success && contactData.data.phone) {
+            const clean = contactData.data.phone.replace(/\D/g, '');
+            setTimeout(() => {
+                window.open(`https://wa.me/91${clean}?text=${waMsg}`, '_blank');
+                showToast('Opening WhatsApp with your message!', 'success');
+                form.reset();
+                btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send Message';
+                btn.disabled = false;
+            }, 800);
+        } else {
+            showToast('Message noted! We will contact you soon.', 'success');
+            form.reset();
+            btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send Message';
+            btn.disabled = false;
+        }
+    } catch (err) {
+        showToast('Thank you! We will contact you soon.', 'success');
+        form.reset();
+        btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Send Message';
+        btn.disabled = false;
+    }
+}
+
+// ── FAQ Toggle ────────────────────────────────────────
+function toggleFAQ(index) {
+    const body = document.getElementById(`faq-body-${index}`);
+    const icon = document.getElementById(`faq-icon-${index}`);
+    body.classList.toggle('hidden');
+    if (body.classList.contains('hidden')) {
+        icon.style.transform = '';
+    } else {
+        icon.style.transform = 'rotate(180deg)';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadContactPageInfo);
+</script>
+{% endblock %}

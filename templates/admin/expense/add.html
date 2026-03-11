@@ -1,0 +1,146 @@
+{% extends "admin/base.html" %}
+{% block title %}Add Expense{% endblock %}
+{% block page_title %}Add Expense{% endblock %}
+{% block page_subtitle %}Record a new expense entry{% endblock %}
+
+{% block content %}
+
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+        <div class="bg-gradient-to-r from-red-500 to-red-700 px-6 py-5">
+            <h2 class="text-white font-bold text-lg">
+                <i class="fas fa-plus-circle mr-2"></i>New Expense Entry
+            </h2>
+            <p class="text-red-100 text-sm">Record daily business expenses</p>
+        </div>
+
+        <form id="expense-form" onsubmit="submitExpense(event)" class="p-6 space-y-5">
+
+            <!-- Expense Type -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Expense Type <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                    <i class="fas fa-tag absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <select name="expense_type" required onchange="updateCategory(this)"
+                            class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+                        <option value="">-- Select Type --</option>
+                        <option value="Labour Expenses">Labour Expenses</option>
+                        <option value="Decoration Materials">Decoration Materials</option>
+                        <option value="Transport Charges">Transport Charges</option>
+                        <option value="Equipment Rental">Equipment Rental</option>
+                        <option value="Food / Miscellaneous">Food / Miscellaneous</option>
+                    </select>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">
+                    Category: <strong id="category-display">—</strong>
+                </p>
+            </div>
+
+            <!-- Amount & Date -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Amount (₹) <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <i class="fas fa-rupee-sign absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="number" name="amount" required
+                               min="1" step="0.01" placeholder="0.00"
+                               class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Expense Date <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <i class="fas fa-calendar absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input type="date" name="expense_date" required
+                               class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Description</label>
+                <div class="relative">
+                    <i class="fas fa-align-left absolute left-3 top-3 text-gray-400 text-sm"></i>
+                    <textarea name="description" rows="3"
+                              placeholder="Expense description..."
+                              class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400 resize-none"></textarea>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Notes</label>
+                <input type="text" name="notes"
+                       placeholder="Additional notes..."
+                       class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-4 pt-2">
+                <button type="submit" id="submit-btn"
+                        class="flex-1 py-3 bg-gradient-to-r from-red-500 to-red-700 text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity">
+                    <i class="fas fa-save mr-2"></i>Save Expense
+                </button>
+                <a href="/admin/expenses"
+                   class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold text-sm text-center hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-times mr-2"></i>Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Set today's date
+document.querySelector('[name="expense_date"]').value =
+    new Date().toISOString().split('T')[0];
+
+function updateCategory(select) {
+    const cat = select.value === 'Labour Expenses' ? 'Labour' : 'Other';
+    document.getElementById('category-display').textContent = cat;
+}
+
+async function submitExpense(e) {
+    e.preventDefault();
+    const form = document.getElementById('expense-form');
+    const btn = document.getElementById('submit-btn');
+    const formData = new FormData(form);
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Saving...';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch('/api/expenses/', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${getToken()}` },
+            body: formData
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            showToast('Expense recorded!', 'success');
+            setTimeout(() => window.location.href = '/admin/expenses', 1200);
+        } else {
+            showToast(data.message || 'Failed', 'error');
+            btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Expense';
+            btn.disabled = false;
+        }
+    } catch (err) {
+        showToast('Connection error', 'error');
+        btn.innerHTML = '<i class="fas fa-save mr-2"></i>Save Expense';
+        btn.disabled = false;
+    }
+}
+</script>
+{% endblock %}

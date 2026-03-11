@@ -1,0 +1,298 @@
+{% extends "admin/base.html" %}
+{% block title %}Bookings{% endblock %}
+{% block page_title %}Booking Management{% endblock %}
+{% block page_subtitle %}Manage all event bookings{% endblock %}
+
+{% block content %}
+
+<!-- ── Top Bar ────────────────────────────────────────── -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div class="flex items-center gap-3">
+        <div class="bg-blue-100 p-3 rounded-xl">
+            <i class="fas fa-calendar-check text-blue-600 text-xl"></i>
+        </div>
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">All Bookings</h2>
+            <p class="text-sm text-gray-500" id="booking-subtitle">Loading...</p>
+        </div>
+    </div>
+    <a href="/admin/bookings/add"
+       class="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors">
+        <i class="fas fa-plus"></i> Add Booking
+    </a>
+</div>
+
+<!-- ── Stat Cards ─────────────────────────────────────── -->
+<div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-2xl font-bold text-gray-800" id="stat-total">—</p>
+        <p class="text-xs text-gray-500 mt-1">Total</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-2xl font-bold text-yellow-500" id="stat-pending">—</p>
+        <p class="text-xs text-gray-500 mt-1">Pending</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-2xl font-bold text-blue-500" id="stat-accepted">—</p>
+        <p class="text-xs text-gray-500 mt-1">Accepted</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-2xl font-bold text-green-500" id="stat-completed">—</p>
+        <p class="text-xs text-gray-500 mt-1">Completed</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-2xl font-bold text-purple-600" id="stat-today">—</p>
+        <p class="text-xs text-gray-500 mt-1">Today</p>
+    </div>
+</div>
+
+<!-- ── Filters ────────────────────────────────────────── -->
+<div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-5">
+    <div class="flex flex-col md:flex-row gap-3">
+        <div class="flex-1 relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" id="search-input"
+                   placeholder="Search by name, phone, booking no..."
+                   oninput="filterBookings()"
+                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+        </div>
+        <select id="status-filter" onchange="filterBookings()"
+                class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+            <option value="">All Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Accepted">Accepted</option>
+            <option value="Completed">Completed</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Cancelled">Cancelled</option>
+        </select>
+        <select id="type-filter" onchange="filterBookings()"
+                class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+            <option value="">All Event Types</option>
+            <option value="Wedding">Wedding</option>
+            <option value="Temple Festival">Temple Festival</option>
+            <option value="Reception">Reception</option>
+        </select>
+    </div>
+</div>
+
+<!-- ── Bookings Table ──────────────────────────────────── -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Booking</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Customer</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Event</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Payment</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="bookings-tbody" class="divide-y divide-gray-50">
+                <tr>
+                    <td colspan="7" class="text-center py-12 text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-3xl"></i>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ── Pagination ─────────────────────────────────────── -->
+<div id="pagination" class="flex justify-center gap-2 mt-5"></div>
+
+<!-- ── Status Update Modal ────────────────────────────── -->
+<div id="status-modal"
+     class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+        <h3 class="font-bold text-gray-800 text-lg mb-4">
+            <i class="fas fa-edit text-purple-600 mr-2"></i>Update Booking
+        </h3>
+        <input type="hidden" id="modal-booking-id">
+
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Status</label>
+                <select id="modal-status"
+                        class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+                    <option value="Pending">Pending</option>
+                    <option value="Accepted">Accepted</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Rejected">Rejected</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Admin Notes</label>
+                <textarea id="modal-notes" rows="3"
+                          placeholder="Add notes..."
+                          class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400 resize-none"></textarea>
+            </div>
+        </div>
+
+        <div class="flex gap-3 mt-5">
+            <button onclick="updateBookingStatus()"
+                    class="flex-1 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-semibold hover:bg-purple-700 transition-colors">
+                Update
+            </button>
+            <button onclick="closeStatusModal()"
+                    class="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 1;
+
+async function loadBookings(page = 1) {
+    currentPage = page;
+    const search = document.getElementById('search-input').value;
+    const status = document.getElementById('status-filter').value;
+    const type = document.getElementById('type-filter').value;
+
+    let url = `/api/bookings/?page=${page}&per_page=10`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (status) url += `&status=${encodeURIComponent(status)}`;
+    if (type) url += `&event_type=${encodeURIComponent(type)}`;
+
+    try {
+        const data = await apiRequest(url);
+        if (!data.success) return;
+
+        renderBookings(data.data.bookings);
+        renderPagination(data.data.pages, page);
+        document.getElementById('booking-subtitle').textContent =
+            `${data.data.total} booking(s) found`;
+
+    } catch (e) {
+        showToast('Failed to load bookings', 'error');
+    }
+}
+
+async function loadStats() {
+    const data = await apiRequest('/api/bookings/stats');
+    if (!data.success) return;
+    const s = data.data;
+    document.getElementById('stat-total').textContent = s.total;
+    document.getElementById('stat-pending').textContent = s.pending;
+    document.getElementById('stat-accepted').textContent = s.accepted;
+    document.getElementById('stat-completed').textContent = s.completed;
+    document.getElementById('stat-today').textContent = s.today;
+}
+
+function renderBookings(bookings) {
+    const tbody = document.getElementById('bookings-tbody');
+
+    if (bookings.length === 0) {
+        tbody.innerHTML = `
+            <tr><td colspan="7" class="text-center py-14 text-gray-400">
+                <i class="fas fa-calendar-times text-4xl mb-3 block"></i>
+                No bookings found
+            </td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = bookings.map(b => `
+        <tr class="hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4">
+                <p class="text-sm font-bold text-purple-600">${b.booking_number}</p>
+                <p class="text-xs text-gray-400">${formatDate(b.created_at)}</p>
+            </td>
+            <td class="px-4 py-4">
+                <p class="text-sm font-semibold text-gray-800">${b.customer_name}</p>
+                <p class="text-xs text-gray-500">${b.customer_phone}</p>
+            </td>
+            <td class="px-4 py-4">
+                <p class="text-sm font-medium text-gray-800">${b.event_type}</p>
+                <p class="text-xs text-gray-500 truncate max-w-xs">${b.event_location}</p>
+            </td>
+            <td class="px-4 py-4 text-center">
+                <p class="text-sm font-medium text-gray-800">${formatDate(b.event_date)}</p>
+                <p class="text-xs text-gray-500">${b.event_duration} day(s)</p>
+            </td>
+            <td class="px-4 py-4 text-center">${statusBadge(b.status)}</td>
+            <td class="px-4 py-4 text-center">${statusBadge(b.payment_status)}</td>
+            <td class="px-4 py-4 text-center">
+                <div class="flex items-center justify-center gap-2">
+                    <a href="/admin/bookings/${b.id}"
+                       class="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                       title="View">
+                        <i class="fas fa-eye text-xs"></i>
+                    </a>
+                    <button onclick="openStatusModal(${b.id}, '${b.status}', '')"
+                            class="p-1.5 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100 transition-colors"
+                            title="Update Status">
+                        <i class="fas fa-edit text-xs"></i>
+                    </button>
+                    <a href="/admin/billing/create?booking_id=${b.id}"
+                       class="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
+                       title="Create Invoice">
+                        <i class="fas fa-file-invoice text-xs"></i>
+                    </a>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderPagination(totalPages, current) {
+    const el = document.getElementById('pagination');
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+    let html = '';
+    for (let i = 1; i <= totalPages; i++) {
+        html += `<button onclick="loadBookings(${i})"
+                         class="w-9 h-9 rounded-lg text-sm font-medium transition-colors
+                         ${i === current ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-purple-50 border border-gray-200'}">
+                    ${i}</button>`;
+    }
+    el.innerHTML = html;
+}
+
+function openStatusModal(bookingId, currentStatus, notes) {
+    document.getElementById('modal-booking-id').value = bookingId;
+    document.getElementById('modal-status').value = currentStatus;
+    document.getElementById('modal-notes').value = notes || '';
+    document.getElementById('status-modal').classList.remove('hidden');
+}
+
+function closeStatusModal() {
+    document.getElementById('status-modal').classList.add('hidden');
+}
+
+async function updateBookingStatus() {
+    const id = document.getElementById('modal-booking-id').value;
+    const status = document.getElementById('modal-status').value;
+    const notes = document.getElementById('modal-notes').value;
+
+    const data = await apiRequest(`/api/bookings/${id}/status`, 'PUT', {
+        status, admin_notes: notes
+    });
+
+    if (data.success) {
+        showToast(`Booking ${status}!`, 'success');
+        closeStatusModal();
+        loadBookings(currentPage);
+    } else {
+        showToast(data.message, 'error');
+    }
+}
+
+function filterBookings() {
+    clearTimeout(window._filterTimer);
+    window._filterTimer = setTimeout(() => loadBookings(1), 400);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadBookings(1);
+    loadStats();
+});
+</script>
+{% endblock %}

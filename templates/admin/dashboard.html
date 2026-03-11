@@ -1,0 +1,483 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}Real-time business overview{% endblock %}
+
+{% block content %}
+
+<!-- ── Stat Cards ─────────────────────────────────────── -->
+<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-6">
+
+    <div class="card-hover bg-white rounded-2xl p-5 shadow-sm border border-gray-100 col-span-1">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 bg-purple-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-calendar-check text-purple-600 text-lg"></i>
+            </div>
+            <span class="text-xs text-gray-400">Total</span>
+        </div>
+        <p class="text-2xl font-bold text-gray-800" id="stat-bookings">—</p>
+        <p class="text-sm text-gray-500 mt-1">Total Bookings</p>
+    </div>
+
+    <div class="card-hover bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 bg-blue-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-users text-blue-600 text-lg"></i>
+            </div>
+            <span class="text-xs text-gray-400">Total</span>
+        </div>
+        <p class="text-2xl font-bold text-gray-800" id="stat-customers">—</p>
+        <p class="text-sm text-gray-500 mt-1">Customers</p>
+    </div>
+
+    <div class="card-hover bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 bg-orange-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-star text-orange-600 text-lg"></i>
+            </div>
+            <span class="text-xs text-gray-400">Today</span>
+        </div>
+        <p class="text-2xl font-bold text-gray-800" id="stat-today">—</p>
+        <p class="text-sm text-gray-500 mt-1">Today Events</p>
+    </div>
+
+    <div class="card-hover bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-rupee-sign text-green-600 text-lg"></i>
+            </div>
+            <span class="text-xs text-gray-400">Revenue</span>
+        </div>
+        <p class="text-xl font-bold text-gray-800" id="stat-revenue">—</p>
+        <p class="text-sm text-gray-500 mt-1">Total Revenue</p>
+    </div>
+
+    <div class="card-hover bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-3">
+            <div class="w-11 h-11 bg-red-100 rounded-xl flex items-center justify-center">
+                <i class="fas fa-chart-line text-red-600 text-lg"></i>
+            </div>
+            <span class="text-xs text-gray-400">Net</span>
+        </div>
+        <p class="text-xl font-bold text-gray-800" id="stat-profit">—</p>
+        <p class="text-sm text-gray-500 mt-1">Net Profit</p>
+    </div>
+</div>
+
+<!-- ── Second Row Stats ───────────────────────────────── -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+
+    <div class="bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl p-5 text-white shadow-md">
+        <i class="fas fa-money-bill-wave text-2xl mb-3 opacity-80"></i>
+        <p class="text-xl font-bold" id="stat-advance">—</p>
+        <p class="text-purple-200 text-sm">Advance Paid</p>
+    </div>
+
+    <div class="bg-gradient-to-br from-red-500 to-red-700 rounded-2xl p-5 text-white shadow-md">
+        <i class="fas fa-clock text-2xl mb-3 opacity-80"></i>
+        <p class="text-xl font-bold" id="stat-pending">—</p>
+        <p class="text-red-200 text-sm">Pending Payments</p>
+    </div>
+
+    <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-5 text-white shadow-md">
+        <i class="fas fa-receipt text-2xl mb-3 opacity-80"></i>
+        <p class="text-xl font-bold" id="stat-expenses">—</p>
+        <p class="text-blue-200 text-sm">Total Expenses</p>
+    </div>
+
+    <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-2xl p-5 text-white shadow-md">
+        <i class="fas fa-hard-hat text-2xl mb-3 opacity-80"></i>
+        <p class="text-xl font-bold" id="stat-wages">—</p>
+        <p class="text-green-200 text-sm">Labour Wages</p>
+    </div>
+</div>
+
+<!-- ── Charts Row ─────────────────────────────────────── -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+    <!-- Revenue Chart -->
+    <div class="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-gray-800">Revenue & Advance — <span id="rev-year">2026</span></h3>
+            <div class="flex gap-3 text-xs">
+                <span class="flex items-center gap-1">
+                    <span class="w-3 h-3 rounded-full bg-purple-500 inline-block"></span>Revenue
+                </span>
+                <span class="flex items-center gap-1">
+                    <span class="w-3 h-3 rounded-full bg-green-400 inline-block"></span>Advance
+                </span>
+            </div>
+        </div>
+        <div class="h-64">
+            <canvas id="revenueChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Booking Status Doughnut -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <h3 class="font-bold text-gray-800 mb-4">Booking Status</h3>
+        <div class="h-52">
+            <canvas id="bookingChart"></canvas>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-2" id="booking-legend"></div>
+    </div>
+</div>
+
+<!-- ── Expense & Profit Charts ────────────────────────── -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+    <!-- Expense Chart -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <h3 class="font-bold text-gray-800 mb-4">Monthly Expenses</h3>
+        <div class="h-60">
+            <canvas id="expenseChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Profit Chart -->
+    <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+        <h3 class="font-bold text-gray-800 mb-4">Monthly Profit Overview</h3>
+        <div class="h-60">
+            <canvas id="profitChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- ── Recent Activity ────────────────────────────────── -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Recent Bookings -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+            <h3 class="font-bold text-gray-800">Recent Bookings</h3>
+            <a href="/admin/bookings"
+               class="text-purple-600 hover:text-purple-800 text-sm font-medium">View All →</a>
+        </div>
+        <div id="recent-bookings" class="divide-y divide-gray-50">
+            <div class="px-6 py-8 text-center text-gray-400">
+                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                <p class="text-sm">Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Customers -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between px-6 py-4 border-b">
+            <h3 class="font-bold text-gray-800">Recent Customers</h3>
+            <a href="/admin/customers"
+               class="text-purple-600 hover:text-purple-800 text-sm font-medium">View All →</a>
+        </div>
+        <div id="recent-customers" class="divide-y divide-gray-50">
+            <div class="px-6 py-8 text-center text-gray-400">
+                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                <p class="text-sm">Loading...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let revenueChart, bookingChart, expenseChart, profitChart;
+
+// ── Load Dashboard ────────────────────────────────────
+async function loadDashboard() {
+    await loadStats();
+    await loadRevenueChart();
+    await loadExpenseChart();
+    await loadProfitChart();
+    await loadRecentActivity();
+}
+
+// ── Load Stats ────────────────────────────────────────
+async function loadStats() {
+    try {
+        const data = await apiRequest('/api/admin/dashboard/stats');
+        if (!data.success) return;
+        const s = data.data;
+
+        document.getElementById('stat-bookings').textContent = s.total_bookings;
+        document.getElementById('stat-customers').textContent = s.total_customers;
+        document.getElementById('stat-today').textContent = s.today_events;
+        document.getElementById('stat-revenue').textContent = formatCurrency(s.total_revenue);
+        document.getElementById('stat-profit').textContent = formatCurrency(s.profit);
+        document.getElementById('stat-advance').textContent = formatCurrency(s.advance_payments);
+        document.getElementById('stat-pending').textContent = formatCurrency(s.pending_payments);
+        document.getElementById('stat-expenses').textContent = formatCurrency(s.total_expenses);
+        document.getElementById('stat-wages').textContent = formatCurrency(s.labour_wages);
+
+        // Booking status chart
+        renderBookingChart(s.booking_status);
+
+    } catch (e) {
+        console.error('Stats error:', e);
+    }
+}
+
+// ── Revenue Chart ─────────────────────────────────────
+async function loadRevenueChart() {
+    try {
+        const data = await apiRequest('/api/admin/dashboard/revenue');
+        if (!data.success) return;
+        const d = data.data;
+
+        document.getElementById('rev-year').textContent = d.year;
+
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        if (revenueChart) revenueChart.destroy();
+
+        revenueChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: d.labels,
+                datasets: [
+                    {
+                        label: 'Revenue',
+                        data: d.revenue,
+                        backgroundColor: 'rgba(124,58,237,0.8)',
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Advance',
+                        data: d.advance,
+                        backgroundColor: 'rgba(52,211,153,0.8)',
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        ticks: {
+                            callback: v => '₹' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)
+                        }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    } catch (e) {}
+}
+
+// ── Booking Status Chart ──────────────────────────────
+function renderBookingChart(status) {
+    const ctx = document.getElementById('bookingChart').getContext('2d');
+    if (bookingChart) bookingChart.destroy();
+
+    const labels = ['Pending', 'Accepted', 'Completed', 'Rejected'];
+    const values = [
+        status.pending, status.accepted,
+        status.completed, status.rejected
+    ];
+    const colors = ['#F59E0B', '#3B82F6', '#10B981', '#EF4444'];
+
+    bookingChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors,
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            cutout: '65%'
+        }
+    });
+
+    // Custom legend
+    const legend = document.getElementById('booking-legend');
+    legend.innerHTML = labels.map((l, i) =>
+        `<div class="flex items-center gap-1 text-xs">
+            <span class="w-2.5 h-2.5 rounded-full inline-block" style="background:${colors[i]}"></span>
+            <span class="text-gray-600">${l}: <strong>${values[i]}</strong></span>
+        </div>`
+    ).join('');
+}
+
+// ── Expense Chart ─────────────────────────────────────
+async function loadExpenseChart() {
+    try {
+        const data = await apiRequest('/api/admin/dashboard/expenses');
+        if (!data.success) return;
+        const d = data.data;
+
+        const ctx = document.getElementById('expenseChart').getContext('2d');
+        if (expenseChart) expenseChart.destroy();
+
+        expenseChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: d.labels,
+                datasets: [
+                    {
+                        label: 'Labour',
+                        data: d.labour_expenses,
+                        borderColor: '#EF4444',
+                        backgroundColor: 'rgba(239,68,68,0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'Other',
+                        data: d.other_expenses,
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245,158,11,0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { font: { size: 11 } }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        ticks: {
+                            callback: v => '₹' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)
+                        }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    } catch (e) {}
+}
+
+// ── Profit Chart ──────────────────────────────────────
+async function loadProfitChart() {
+    try {
+        const data = await apiRequest('/api/admin/dashboard/profit');
+        if (!data.success) return;
+        const d = data.data;
+
+        const ctx = document.getElementById('profitChart').getContext('2d');
+        if (profitChart) profitChart.destroy();
+
+        const colors = d.profit.map(v =>
+            v >= 0 ? 'rgba(16,185,129,0.8)' : 'rgba(239,68,68,0.8)'
+        );
+
+        profitChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: d.labels,
+                datasets: [{
+                    label: 'Profit/Loss',
+                    data: d.profit,
+                    backgroundColor: colors,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(0,0,0,0.05)' },
+                        ticks: {
+                            callback: v => '₹' + (v >= 1000 ? (v/1000).toFixed(0)+'K' : v)
+                        }
+                    },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    } catch (e) {}
+}
+
+// ── Recent Activity ───────────────────────────────────
+async function loadRecentActivity() {
+    try {
+        const data = await apiRequest('/api/admin/dashboard/recent-activity');
+        if (!data.success) return;
+        const d = data.data;
+
+        // Recent Bookings
+        const bookingsEl = document.getElementById('recent-bookings');
+        if (d.recent_bookings.length === 0) {
+            bookingsEl.innerHTML = `
+                <div class="px-6 py-8 text-center text-gray-400">
+                    <i class="fas fa-calendar-times text-3xl mb-2"></i>
+                    <p class="text-sm">No bookings yet</p>
+                </div>`;
+        } else {
+            bookingsEl.innerHTML = d.recent_bookings.map(b => `
+                <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-calendar text-purple-600 text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">${b.customer_name}</p>
+                            <p class="text-xs text-gray-500">${b.event_type} • ${formatDate(b.event_date)}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        ${statusBadge(b.status)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Recent Customers
+        const customersEl = document.getElementById('recent-customers');
+        if (d.recent_customers.length === 0) {
+            customersEl.innerHTML = `
+                <div class="px-6 py-8 text-center text-gray-400">
+                    <i class="fas fa-users-slash text-3xl mb-2"></i>
+                    <p class="text-sm">No customers yet</p>
+                </div>`;
+        } else {
+            customersEl.innerHTML = d.recent_customers.map(c => `
+                <div class="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span class="text-blue-600 font-bold text-sm">${c.full_name.charAt(0).toUpperCase()}</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-gray-800">${c.full_name}</p>
+                            <p class="text-xs text-gray-500">${c.phone} • ${c.email}</p>
+                        </div>
+                    </div>
+                    <span class="text-xs text-gray-400">${formatDate(c.created_at)}</span>
+                </div>
+            `).join('');
+        }
+
+    } catch (e) {
+        console.error('Activity error:', e);
+    }
+}
+
+// ── Init ──────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', loadDashboard);
+</script>
+{% endblock %}

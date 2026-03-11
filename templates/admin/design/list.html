@@ -1,0 +1,230 @@
+{% extends "admin/base.html" %}
+{% block title %}Designs{% endblock %}
+{% block page_title %}Design Gallery{% endblock %}
+{% block page_subtitle %}Manage decoration designs{% endblock %}
+
+{% block content %}
+
+<!-- ── Top Bar ────────────────────────────────────────── -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div class="flex items-center gap-3">
+        <div class="bg-pink-100 p-3 rounded-xl">
+            <i class="fas fa-images text-pink-600 text-xl"></i>
+        </div>
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">Design Gallery</h2>
+            <p class="text-sm text-gray-500" id="design-count">Loading...</p>
+        </div>
+    </div>
+    <a href="/admin/designs/upload"
+       class="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors">
+        <i class="fas fa-upload"></i> Upload Design
+    </a>
+</div>
+
+<!-- ── Category Tabs ───────────────────────────────────── -->
+<div class="flex gap-2 mb-5 overflow-x-auto pb-1">
+    <button onclick="setCategory('')" id="tab-all"
+            class="category-tab px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors bg-purple-600 text-white">
+        All Designs
+    </button>
+    <button onclick="setCategory('Wedding')" id="tab-wedding"
+            class="category-tab px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors bg-white text-gray-600 border border-gray-200 hover:bg-purple-50">
+        <i class="fas fa-heart mr-1 text-red-500"></i>Wedding
+    </button>
+    <button onclick="setCategory('Temple Festival')" id="tab-temple"
+            class="category-tab px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors bg-white text-gray-600 border border-gray-200 hover:bg-purple-50">
+        <i class="fas fa-place-of-worship mr-1 text-orange-500"></i>Temple Festival
+    </button>
+    <button onclick="setCategory('Reception')" id="tab-reception"
+            class="category-tab px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors bg-white text-gray-600 border border-gray-200 hover:bg-purple-50">
+        <i class="fas fa-glass-cheers mr-1 text-blue-500"></i>Reception
+    </button>
+</div>
+
+<!-- ── Search ─────────────────────────────────────────── -->
+<div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-5">
+    <div class="flex gap-3">
+        <div class="flex-1 relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" id="search-input"
+                   placeholder="Search designs..."
+                   oninput="filterDesigns()"
+                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+        </div>
+        <select id="featured-filter" onchange="filterDesigns()"
+                class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+            <option value="">All</option>
+            <option value="true">Featured Only</option>
+        </select>
+    </div>
+</div>
+
+<!-- ── Designs Grid ────────────────────────────────────── -->
+<div id="designs-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div class="col-span-full text-center py-12 text-gray-400">
+        <i class="fas fa-spinner fa-spin text-4xl"></i>
+        <p class="mt-2">Loading designs...</p>
+    </div>
+</div>
+
+<!-- ── Pagination ─────────────────────────────────────── -->
+<div id="pagination" class="flex justify-center gap-2 mt-5"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let activeCategory = '';
+let currentPage = 1;
+
+function setCategory(cat) {
+    activeCategory = cat;
+    document.querySelectorAll('.category-tab').forEach(btn => {
+        btn.className = 'category-tab px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors bg-white text-gray-600 border border-gray-200 hover:bg-purple-50';
+    });
+    const activeId = cat === '' ? 'tab-all'
+        : cat === 'Wedding' ? 'tab-wedding'
+        : cat === 'Temple Festival' ? 'tab-temple'
+        : 'tab-reception';
+    document.getElementById(activeId).className =
+        'category-tab px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors bg-purple-600 text-white';
+    loadDesigns(1);
+}
+
+async function loadDesigns(page = 1) {
+    currentPage = page;
+    const search = document.getElementById('search-input').value;
+    const featured = document.getElementById('featured-filter').value;
+
+    let url = `/api/designs/?page=${page}&per_page=12`;
+    if (activeCategory) url += `&category=${encodeURIComponent(activeCategory)}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (featured) url += `&is_featured=${featured}`;
+
+    try {
+        const data = await apiRequest(url);
+        if (!data.success) return;
+
+        renderDesigns(data.data.designs);
+        renderPagination(data.data.pages, page);
+        document.getElementById('design-count').textContent =
+            `${data.data.total} design(s)`;
+
+    } catch (e) {
+        showToast('Failed to load designs', 'error');
+    }
+}
+
+function renderDesigns(designs) {
+    const grid = document.getElementById('designs-grid');
+
+    if (designs.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full text-center py-16 text-gray-400">
+                <i class="fas fa-images text-5xl mb-4"></i>
+                <p class="text-lg font-medium">No designs found</p>
+                <a href="/admin/designs/upload"
+                   class="mt-3 inline-block bg-purple-600 text-white px-5 py-2 rounded-xl text-sm">
+                   + Upload Design
+                </a>
+            </div>`;
+        return;
+    }
+
+    const catColors = {
+        'Wedding': 'bg-red-100 text-red-700',
+        'Temple Festival': 'bg-orange-100 text-orange-700',
+        'Reception': 'bg-blue-100 text-blue-700'
+    };
+
+    grid.innerHTML = designs.map(d => `
+        <div class="card-hover bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group">
+            <!-- Image -->
+            <div class="relative h-48 overflow-hidden bg-gray-100">
+                ${d.image_path
+                    ? `<img src="/static/${d.image_path}"
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'">`
+                    : `<div class="w-full h-full flex items-center justify-center bg-purple-50">
+                           <i class="fas fa-image text-purple-300 text-4xl"></i>
+                       </div>`
+                }
+                ${d.is_featured
+                    ? `<div class="absolute top-2 left-2 bg-yellow-400 text-yellow-900 px-2 py-0.5 rounded-full text-xs font-bold">
+                           ⭐ Featured
+                       </div>`
+                    : ''}
+                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                    <button onclick="toggleFeatured(${d.id}, ${d.is_featured})"
+                            class="p-1.5 bg-yellow-400 text-yellow-900 rounded-lg hover:bg-yellow-500 transition-colors"
+                            title="Toggle Featured">
+                        <i class="fas fa-star text-xs"></i>
+                    </button>
+                    <button onclick="deleteDesign(${d.id})"
+                            class="p-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                            title="Delete">
+                        <i class="fas fa-trash text-xs"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Info -->
+            <div class="p-3">
+                <h3 class="font-semibold text-gray-800 text-sm truncate">${d.title}</h3>
+                <div class="flex items-center justify-between mt-2">
+                    <span class="px-2 py-0.5 rounded-full text-xs font-medium ${catColors[d.category] || 'bg-gray-100 text-gray-700'}">
+                        ${d.category}
+                    </span>
+                    <div class="flex items-center gap-1 text-xs text-gray-400">
+                        <i class="fas fa-eye"></i>
+                        <span>${d.view_count}</span>
+                    </div>
+                </div>
+                ${d.description
+                    ? `<p class="text-xs text-gray-500 mt-2 line-clamp-2">${d.description}</p>`
+                    : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderPagination(totalPages, current) {
+    const el = document.getElementById('pagination');
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+    let html = '';
+    for (let i = 1; i <= totalPages; i++) {
+        html += `<button onclick="loadDesigns(${i})"
+                         class="w-9 h-9 rounded-lg text-sm font-medium transition-colors
+                         ${i === current ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-purple-50 border border-gray-200'}">
+                    ${i}</button>`;
+    }
+    el.innerHTML = html;
+}
+
+async function toggleFeatured(id, current) {
+    const data = await apiRequest(`/api/designs/${id}/toggle-featured`, 'PUT');
+    if (data.success) {
+        showToast(data.message, 'success');
+        loadDesigns(currentPage);
+    }
+}
+
+async function deleteDesign(id) {
+    if (!confirm('Delete this design?')) return;
+    const data = await apiRequest(`/api/designs/${id}`, 'DELETE');
+    if (data.success) {
+        showToast('Design deleted', 'success');
+        loadDesigns(currentPage);
+    } else {
+        showToast(data.message, 'error');
+    }
+}
+
+function filterDesigns() {
+    clearTimeout(window._filterTimer);
+    window._filterTimer = setTimeout(() => loadDesigns(1), 400);
+}
+
+document.addEventListener('DOMContentLoaded', () => loadDesigns(1));
+</script>
+{% endblock %}

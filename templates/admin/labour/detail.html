@@ -1,0 +1,206 @@
+{% extends "admin/base.html" %}
+{% block title %}Labour Detail{% endblock %}
+{% block page_title %}Labour Profile{% endblock %}
+{% block page_subtitle %}View and manage labour details{% endblock %}
+
+{% block content %}
+
+<div id="labour-detail" class="max-w-5xl mx-auto">
+    <div class="text-center py-12 text-gray-400">
+        <i class="fas fa-spinner fa-spin text-4xl"></i>
+        <p class="mt-2">Loading...</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+const labourId = {{ labour_id }};
+
+async function loadLabourDetail() {
+    try {
+        const data = await apiRequest(`/api/labour/${labourId}`);
+        if (!data.success) {
+            showToast('Labour not found', 'error');
+            return;
+        }
+        renderDetail(data.data);
+    } catch (e) {
+        showToast('Failed to load', 'error');
+    }
+}
+
+function renderDetail(l) {
+    const el = document.getElementById('labour-detail');
+    el.innerHTML = `
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Profile Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="bg-gradient-to-br from-purple-600 to-purple-800 p-6 text-center">
+                <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-white mx-auto mb-3 bg-white">
+                    ${l.photo_path
+                        ? `<img src="/static/${l.photo_path}" class="w-full h-full object-cover">`
+                        : `<div class="w-full h-full bg-purple-200 flex items-center justify-center">
+                               <span class="text-purple-700 font-bold text-3xl">
+                                   ${l.name.charAt(0)}
+                               </span>
+                           </div>`
+                    }
+                </div>
+                <h2 class="text-white font-bold text-lg">${l.name}</h2>
+                <p class="text-purple-200 text-sm">${l.phone}</p>
+                <span class="inline-block mt-2 px-3 py-1 rounded-full text-xs font-medium
+                    ${l.is_active ? 'bg-green-400 text-green-900' : 'bg-red-400 text-red-900'}">
+                    ${l.is_active ? '● Active' : '● Inactive'}
+                </span>
+            </div>
+            <div class="p-5 space-y-3 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Age</span>
+                    <span class="font-medium">${l.age} years</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Daily Wage</span>
+                    <span class="font-bold text-purple-600">₹${l.daily_wage}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Days Worked</span>
+                    <span class="font-medium">${l.total_days_worked}</span>
+                </div>
+                <div class="border-t pt-3">
+                    <p class="text-gray-500 text-xs mb-1">Address</p>
+                    <p class="font-medium">${l.address || '—'}</p>
+                </div>
+                <div class="border-t pt-3">
+                    <p class="text-gray-500 text-xs mb-1">Bank Details</p>
+                    <p class="font-medium">${l.bank_account_name || '—'}</p>
+                    <p class="text-gray-600">${l.bank_account_number || '—'}</p>
+                    <p class="text-gray-600">${l.bank_name || '—'}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats & Attendance -->
+        <div class="lg:col-span-2 space-y-5">
+
+            <!-- Wage Summary -->
+            <div class="grid grid-cols-3 gap-4">
+                <div class="bg-green-50 rounded-2xl p-4 text-center border border-green-100">
+                    <p class="text-xl font-bold text-green-600">
+                        ₹${(l.total_earned||0).toLocaleString('en-IN')}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">Total Earned</p>
+                </div>
+                <div class="bg-blue-50 rounded-2xl p-4 text-center border border-blue-100">
+                    <p class="text-xl font-bold text-blue-600">
+                        ₹${(l.total_advance||0).toLocaleString('en-IN')}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">Advance Taken</p>
+                </div>
+                <div class="bg-red-50 rounded-2xl p-4 text-center border border-red-100">
+                    <p class="text-xl font-bold text-red-500">
+                        ₹${(l.pending_balance||0).toLocaleString('en-IN')}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">Pending Balance</p>
+                </div>
+            </div>
+
+            <!-- Recent Attendance -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
+                <div class="px-5 py-4 border-b flex items-center justify-between">
+                    <h3 class="font-bold text-gray-800">Recent Attendance</h3>
+                    <a href="/admin/labour/attendance"
+                       class="text-purple-600 text-sm hover:underline">Mark Today →</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="text-left px-5 py-3 text-xs text-gray-500 font-semibold">Date</th>
+                                <th class="text-center px-4 py-3 text-xs text-gray-500 font-semibold">Status</th>
+                                <th class="text-center px-4 py-3 text-xs text-gray-500 font-semibold">Wage</th>
+                                <th class="text-center px-4 py-3 text-xs text-gray-500 font-semibold">Advance</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            ${(l.recent_attendance || []).slice(0,10).map(a => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-5 py-3 font-medium">${formatDate(a.date)}</td>
+                                <td class="px-4 py-3 text-center">
+                                    <span class="px-2 py-0.5 rounded-full text-xs font-medium
+                                        ${a.is_present
+                                            ? (a.half_day ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700')
+                                            : 'bg-red-100 text-red-700'}">
+                                        ${a.is_present ? (a.half_day ? 'Half Day' : 'Present') : 'Absent'}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-center font-medium text-green-600">₹${a.wage_amount}</td>
+                                <td class="px-4 py-3 text-center font-medium text-red-500">
+                                    ${a.advance_amount > 0 ? '₹' + a.advance_amount : '—'}
+                                </td>
+                            </tr>`).join('')}
+                            ${(l.recent_attendance || []).length === 0
+                                ? '<tr><td colspan="4" class="text-center py-6 text-gray-400">No attendance records</td></tr>'
+                                : ''}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3">
+                <button onclick="addAdvancePayment()"
+                        class="flex-1 py-3 bg-green-600 text-white rounded-xl font-medium text-sm hover:bg-green-700 transition-colors">
+                    <i class="fas fa-rupee-sign mr-2"></i>Add Advance
+                </button>
+                <button onclick="toggleStatus(${l.id}, ${l.is_active})"
+                        class="flex-1 py-3 ${l.is_active ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-green-100 text-green-600 hover:bg-green-200'} rounded-xl font-medium text-sm transition-colors">
+                    <i class="fas ${l.is_active ? 'fa-user-slash' : 'fa-user-check'} mr-2"></i>
+                    ${l.is_active ? 'Deactivate' : 'Activate'}
+                </button>
+                <a href="/admin/labour"
+                   class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-medium text-sm text-center hover:bg-gray-200 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Back
+                </a>
+            </div>
+        </div>
+    </div>`;
+}
+
+async function addAdvancePayment() {
+    const amount = prompt('Enter advance payment amount (₹):');
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return;
+    const note = prompt('Note (optional):') || '';
+
+    const data = await apiRequest(`/api/labour/${labourId}/advance`, 'POST', {
+        amount: parseFloat(amount),
+        note,
+        date: new Date().toISOString().split('T')[0]
+    });
+
+    if (data.success) {
+        showToast('Advance recorded!', 'success');
+        loadLabourDetail();
+    } else {
+        showToast(data.message, 'error');
+    }
+}
+
+async function toggleStatus(id, isCurrentlyActive) {
+    const action = isCurrentlyActive ? 'deactivate' : 'activate';
+    if (!confirm(`Are you sure you want to ${action} this labour?`)) return;
+
+    const data = await apiRequest(`/api/labour/${id}`, 'DELETE');
+    if (data.success) {
+        showToast(data.message, 'success');
+        loadLabourDetail();
+    } else {
+        showToast(data.message || 'Failed', 'error');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadLabourDetail);
+</script>
+{% endblock %}  

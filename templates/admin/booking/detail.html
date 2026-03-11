@@ -1,0 +1,400 @@
+{% extends "admin/base.html" %}
+{% block title %}Booking Detail{% endblock %}
+{% block page_title %}Booking Detail{% endblock %}
+{% block page_subtitle %}Full booking information{% endblock %}
+
+{% block content %}
+<div id="booking-content" class="max-w-5xl mx-auto">
+    <div class="text-center py-12 text-gray-400">
+        <i class="fas fa-spinner fa-spin text-4xl"></i>
+        <p class="mt-2">Loading booking...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const bookingId = {{ booking_id }};
+
+async function loadBookingDetail() {
+    try {
+        const data = await apiRequest(`/api/bookings/${bookingId}`);
+        if (!data.success) {
+            showToast('Booking not found', 'error');
+            return;
+        }
+        renderBooking(data.data);
+    } catch (e) {
+        showToast('Failed to load', 'error');
+    }
+}
+
+function renderBooking(b) {
+    const el = document.getElementById('booking-content');
+    el.innerHTML = `
+    <div class="space-y-5">
+
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-purple-600">${b.booking_number}</h2>
+                    <p class="text-gray-500 text-sm mt-1">Created: ${formatDate(b.created_at)}</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    ${statusBadge(b.status)}
+                    ${statusBadge(b.payment_status)}
+                    <button onclick="openEditStatus()"
+                            class="px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-edit mr-1"></i>Update Status
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            <!-- Customer Info -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-user text-purple-600"></i>Customer Details
+                </h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Name</span>
+                        <span class="font-semibold">${b.customer_name}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Phone</span>
+                        <a href="tel:${b.customer_phone}" class="font-semibold text-blue-600">${b.customer_phone}</a>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Email</span>
+                        <span class="font-semibold">${b.customer_email}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event Info -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-calendar text-purple-600"></i>Event Details
+                </h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Event Type</span>
+                        <span class="font-semibold">${b.event_type}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Event Date</span>
+                        <span class="font-semibold">${formatDate(b.event_date)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Duration</span>
+                        <span class="font-semibold">${b.event_duration} day(s)</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Package</span>
+                        <span class="font-semibold">${b.decoration_package || '—'}</span>
+                    </div>
+                    <div>
+                        <span class="text-gray-500">Location</span>
+                        <p class="font-semibold mt-1">${b.event_location}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment & Labour -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+            <!-- Payment -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-rupee-sign text-purple-600"></i>Payment Summary
+                </h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Total Amount</span>
+                        <span class="font-bold text-gray-800">${formatCurrency(b.total_amount)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Advance Paid</span>
+                        <span class="font-bold text-green-600">${formatCurrency(b.advance_paid)}</span>
+                    </div>
+                    <div class="flex justify-between border-t pt-3">
+                        <span class="text-gray-500">Pending Amount</span>
+                        <span class="font-bold text-red-500">${formatCurrency(b.pending_amount)}</span>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="/admin/billing/create?booking_id=${b.id}"
+                       class="w-full block text-center py-2.5 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors">
+                        <i class="fas fa-file-invoice mr-2"></i>
+                        ${b.payment_status !== 'Pending' ? 'View Invoice' : 'Create Invoice'}
+                    </a>
+                </div>
+            </div>
+
+            <!-- Assigned Labours -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-hard-hat text-purple-600"></i>Assigned Labour
+                    </h3>
+                    <button onclick="openAssignModal()"
+                            class="px-3 py-1.5 bg-purple-100 text-purple-600 rounded-lg text-xs font-medium hover:bg-purple-200 transition-colors">
+                        + Assign
+                    </button>
+                </div>
+                <div id="assigned-labours">
+                    ${b.assigned_labours && b.assigned_labours.length > 0
+                        ? b.assigned_labours.map(l => `
+                            <div class="flex items-center justify-between py-2 border-b last:border-0">
+                                <div>
+                                    <p class="text-sm font-medium">${l.labour_name}</p>
+                                    <p class="text-xs text-gray-500">${l.labour_phone} • ₹${l.daily_wage}/day</p>
+                                </div>
+                                <button onclick="removeLabour(${b.id}, ${l.labour_id})"
+                                        class="text-red-400 hover:text-red-600 text-xs">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>`).join('')
+                        : '<p class="text-sm text-gray-400 text-center py-4">No labour assigned yet</p>'
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Special Requirements -->
+        ${b.special_requirements ? `
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 class="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                <i class="fas fa-sticky-note text-purple-600"></i>Special Requirements
+            </h3>
+            <p class="text-sm text-gray-600">${b.special_requirements}</p>
+        </div>` : ''}
+
+        <!-- Admin Notes -->
+        ${b.admin_notes ? `
+        <div class="bg-purple-50 rounded-2xl border border-purple-100 p-5">
+            <h3 class="font-bold text-purple-800 mb-2 text-sm flex items-center gap-2">
+                <i class="fas fa-comment text-purple-600"></i>Admin Notes
+            </h3>
+            <p class="text-sm text-purple-700">${b.admin_notes}</p>
+        </div>` : ''}
+
+        <!-- Back Button -->
+        <div class="flex gap-3">
+            <a href="/admin/bookings"
+               class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Bookings
+            </a>
+        </div>
+    </div>
+
+    <!-- Assign Labour Modal -->
+    <div id="assign-labour-modal"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col" style="max-height:90vh">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-5 border-b">
+                <div>
+                    <h3 class="font-bold text-gray-800 text-lg">Assign Labour</h3>
+                    <p class="text-xs text-gray-500 mt-0.5">Select workers to assign to this booking</p>
+                </div>
+                <button onclick="closeAssignModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+            </div>
+            <!-- Search -->
+            <div class="p-4 border-b">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                    <input type="text" id="labour-search-input"
+                           placeholder="Search by name or phone..."
+                           oninput="filterLabours()"
+                           class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+                </div>
+            </div>
+            <!-- Labour List -->
+            <div id="labour-list" class="overflow-y-auto flex-1 p-3 space-y-1">
+                <p class="text-center text-sm text-gray-400 py-6"><i class="fas fa-spinner fa-spin"></i> Loading...</p>
+            </div>
+            <!-- Footer -->
+            <div class="flex gap-3 p-4 border-t">
+                <button id="confirm-assign-btn"
+                        onclick="confirmAssignLabour()"
+                        disabled
+                        class="flex-1 py-2.5 bg-gray-300 text-gray-500 rounded-xl text-sm font-semibold cursor-not-allowed">
+                    Assign
+                </button>
+                <button onclick="closeAssignModal()"
+                        class="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Status Modal -->
+    <div id="edit-status-modal"
+         class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h3 class="font-bold text-gray-800 mb-4">Update Status</h3>
+            <select id="edit-status"
+                    class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm mb-3 focus:outline-none focus:border-purple-400">
+                <option value="Pending" ${b.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                <option value="Accepted" ${b.status === 'Accepted' ? 'selected' : ''}>Accepted</option>
+                <option value="Completed" ${b.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                <option value="Rejected" ${b.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                <option value="Cancelled" ${b.status === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+            </select>
+            <textarea id="edit-notes" rows="3" placeholder="Admin notes..."
+                      class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm mb-4 focus:outline-none focus:border-purple-400 resize-none">${b.admin_notes || ''}</textarea>
+            <div class="flex gap-3">
+                <button onclick="saveStatus(${b.id})"
+                        class="flex-1 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-semibold hover:bg-purple-700 transition-colors">
+                    Save
+                </button>
+                <button onclick="document.getElementById('edit-status-modal').classList.add('hidden')"
+                        class="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>`;
+}
+
+function openEditStatus() {
+    document.getElementById('edit-status-modal').classList.remove('hidden');
+}
+
+async function saveStatus(id) {
+    const status = document.getElementById('edit-status').value;
+    const notes = document.getElementById('edit-notes').value;
+    const data = await apiRequest(`/api/bookings/${id}/status`, 'PUT', {
+        status, admin_notes: notes
+    });
+    if (data.success) {
+        showToast('Status updated!', 'success');
+        document.getElementById('edit-status-modal').classList.add('hidden');
+        loadBookingDetail();
+    } else {
+        showToast(data.message, 'error');
+    }
+}
+
+async function removeLabour(bookingId, labourId) {
+    if (!confirm('Remove this labour from booking?')) return;
+    const data = await apiRequest(
+        `/api/bookings/${bookingId}/remove-labour/${labourId}`, 'DELETE'
+    );
+    if (data.success) {
+        showToast('Labour removed', 'success');
+        loadBookingDetail();
+    } else {
+        showToast(data.message, 'error');
+    }
+}
+
+// ── Assign Labour Modal ──────────────────────────────
+let allLabours = [];
+let selectedLabourIds = new Set();
+
+async function openAssignModal() {
+    // Get already assigned labour IDs to pre-exclude them
+    const bookingData = await apiRequest(`/api/bookings/${bookingId}`);
+    const assignedIds = new Set(
+        (bookingData.data?.assigned_labours || []).map(l => l.labour_id)
+    );
+
+    // Load all active labours
+    const res = await apiRequest('/api/labour/?is_active=true&per_page=100');
+    allLabours = (res.data?.labours || []).filter(l => !assignedIds.has(l.id));
+    selectedLabourIds = new Set();
+
+    renderLabourList(allLabours);
+    document.getElementById('assign-labour-modal').classList.remove('hidden');
+    document.getElementById('labour-search-input').value = '';
+    document.getElementById('labour-search-input').focus();
+}
+
+function renderLabourList(labours) {
+    const container = document.getElementById('labour-list');
+    if (labours.length === 0) {
+        container.innerHTML = `<p class="text-center text-sm text-gray-400 py-6">No available labour found</p>`;
+        return;
+    }
+    container.innerHTML = labours.map(l => `
+        <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 cursor-pointer transition-colors border border-transparent hover:border-purple-100">
+            <input type="checkbox" value="${l.id}"
+                   onchange="toggleLabourSelect(${l.id})"
+                   class="w-4 h-4 accent-purple-600 cursor-pointer"
+                   ${selectedLabourIds.has(l.id) ? 'checked' : ''}>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-gray-800">${l.name}</p>
+                <p class="text-xs text-gray-500">${l.phone} &bull; ₹${l.daily_wage}/day</p>
+            </div>
+            <span class="text-xs px-2 py-0.5 rounded-full ${l.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">
+                ${l.is_active ? 'Active' : 'Inactive'}
+            </span>
+        </label>
+    `).join('');
+}
+
+function toggleLabourSelect(id) {
+    if (selectedLabourIds.has(id)) {
+        selectedLabourIds.delete(id);
+    } else {
+        selectedLabourIds.add(id);
+    }
+    updateAssignBtn();
+}
+
+function updateAssignBtn() {
+    const btn = document.getElementById('confirm-assign-btn');
+    const count = selectedLabourIds.size;
+    btn.textContent = count > 0 ? `Assign ${count} Labour${count > 1 ? 's' : ''}` : 'Assign';
+    btn.disabled = count === 0;
+    btn.className = count > 0
+        ? 'flex-1 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-semibold hover:bg-purple-700 transition-colors'
+        : 'flex-1 py-2.5 bg-gray-300 text-gray-500 rounded-xl text-sm font-semibold cursor-not-allowed';
+}
+
+function filterLabours() {
+    const q = document.getElementById('labour-search-input').value.toLowerCase();
+    const filtered = allLabours.filter(l =>
+        l.name.toLowerCase().includes(q) || l.phone.includes(q)
+    );
+    renderLabourList(filtered);
+}
+
+function closeAssignModal() {
+    document.getElementById('assign-labour-modal').classList.add('hidden');
+    selectedLabourIds = new Set();
+}
+
+async function confirmAssignLabour() {
+    if (selectedLabourIds.size === 0) return;
+    const btn = document.getElementById('confirm-assign-btn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Assigning...';
+    btn.disabled = true;
+
+    const res = await apiRequest(`/api/bookings/${bookingId}/assign-labour`, 'POST', {
+        labour_ids: Array.from(selectedLabourIds)
+    });
+
+    if (res.success) {
+        showToast(`${selectedLabourIds.size} labour(s) assigned successfully!`, 'success');
+        closeAssignModal();
+        loadBookingDetail();
+    } else {
+        showToast(res.message || 'Failed to assign labour', 'error');
+        btn.textContent = 'Assign';
+        btn.disabled = false;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadBookingDetail);
+</script>
+{% endblock %}

@@ -1,0 +1,292 @@
+{% extends "admin/base.html" %}
+{% block title %}Attendance{% endblock %}
+{% block page_title %}Daily Attendance{% endblock %}
+{% block page_subtitle %}Mark attendance for today{% endblock %}
+
+{% block content %}
+
+<!-- ── Header ─────────────────────────────────────────── -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div class="flex items-center gap-4">
+        <div class="bg-blue-100 p-3 rounded-xl">
+            <i class="fas fa-user-check text-blue-600 text-xl"></i>
+        </div>
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">Attendance Register</h2>
+            <p class="text-sm text-gray-500" id="att-summary">Loading...</p>
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        <input type="date" id="att-date"
+               class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400"
+               onchange="loadAttendanceForDate()">
+        <button onclick="submitBulkAttendance()"
+                class="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors">
+            <i class="fas fa-save"></i> Save All
+        </button>
+    </div>
+</div>
+
+<!-- ── Daily Summary ──────────────────────────────────── -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-2xl font-bold text-green-600" id="present-count">0</p>
+        <p class="text-xs text-gray-500">Present</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-2xl font-bold text-red-500" id="absent-count">0</p>
+        <p class="text-xs text-gray-500">Absent</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-2xl font-bold text-yellow-500" id="half-count">0</p>
+        <p class="text-xs text-gray-500">Half Day</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-xl font-bold text-purple-600" id="today-wages">₹0</p>
+        <p class="text-xs text-gray-500">Today Wages</p>
+    </div>
+</div>
+
+<!-- ── Attendance Table ───────────────────────────────── -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 class="font-bold text-gray-800">Labour Attendance List</h3>
+        <div class="flex gap-2">
+            <button onclick="markAll(true)"
+                    class="px-3 py-1.5 bg-green-100 text-green-700 rounded-lg text-xs font-medium hover:bg-green-200 transition-colors">
+                ✓ All Present
+            </button>
+            <button onclick="markAll(false)"
+                    class="px-3 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-medium hover:bg-red-200 transition-colors">
+                ✗ All Absent
+            </button>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Labour</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Daily Wage</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Half Day</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Advance (₹)</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Today Pay</th>
+                </tr>
+            </thead>
+            <tbody id="attendance-tbody" class="divide-y divide-gray-50">
+                <tr>
+                    <td colspan="6" class="text-center py-10 text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-2xl"></i>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let labourList = [];
+let attendanceData = {};
+
+// Set today's date
+document.getElementById('att-date').value =
+    new Date().toISOString().split('T')[0];
+
+async function loadLaboursForAttendance() {
+    try {
+        const data = await apiRequest(
+            '/api/labour/?is_active=true&per_page=100'
+        );
+        if (!data.success) return;
+        labourList = data.data.labours;
+        await loadAttendanceForDate();
+    } catch (e) {
+        showToast('Failed to load labours', 'error');
+    }
+}
+
+async function loadAttendanceForDate() {
+    const date = document.getElementById('att-date').value;
+
+    try {
+        const data = await apiRequest(
+            `/api/labour/attendance/daily-summary?date=${date}`
+        );
+
+        attendanceData = {};
+        if (data.success) {
+            data.data.details.forEach(d => {
+                attendanceData[d.labour_id] = d;
+            });
+        }
+    } catch (e) {}
+
+    renderAttendanceTable();
+}
+
+function renderAttendanceTable() {
+    const tbody = document.getElementById('attendance-tbody');
+
+    if (labourList.length === 0) {
+        tbody.innerHTML = `
+            <tr><td colspan="6" class="text-center py-10 text-gray-400">
+                No active labours found.
+                <a href="/admin/labour/add" class="text-purple-600 underline ml-1">Add Labour</a>
+            </td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = labourList.map(l => {
+        const existing = attendanceData[l.id] || {};
+        const isPresent = existing.is_present !== undefined
+            ? existing.is_present : true;
+        const isHalf = existing.half_day || false;
+        const advance = existing.advance_amount || 0;
+        const todayPay = isPresent
+            ? (isHalf ? l.daily_wage / 2 : l.daily_wage)
+            : 0;
+
+        return `
+        <tr class="hover:bg-gray-50 transition-colors" id="row-${l.id}">
+            <td class="px-6 py-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full overflow-hidden bg-purple-100 flex-shrink-0">
+                        ${l.photo_path
+                            ? `<img src="/static/${l.photo_path}" class="w-full h-full object-cover">`
+                            : `<div class="w-full h-full flex items-center justify-center">
+                                   <span class="text-purple-600 font-bold text-sm">
+                                       ${l.name.charAt(0)}
+                                   </span>
+                               </div>`
+                        }
+                    </div>
+                    <div>
+                        <p class="font-semibold text-gray-800 text-sm">${l.name}</p>
+                        <p class="text-xs text-gray-500">${l.phone}</p>
+                    </div>
+                </div>
+            </td>
+            <td class="px-4 py-4 text-center text-sm font-medium text-gray-700">
+                ₹${l.daily_wage}
+            </td>
+            <td class="px-4 py-4 text-center">
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox"
+                           id="present-${l.id}"
+                           ${isPresent ? 'checked' : ''}
+                           onchange="updateRow(${l.id}, ${l.daily_wage})"
+                           class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-200 rounded-full peer
+                                peer-checked:bg-green-500 transition-colors
+                                after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                                after:bg-white after:rounded-full after:h-5 after:w-5
+                                after:transition-all peer-checked:after:translate-x-5"></div>
+                </label>
+            </td>
+            <td class="px-4 py-4 text-center">
+                <input type="checkbox"
+                       id="half-${l.id}"
+                       ${isHalf ? 'checked' : ''}
+                       onchange="updateRow(${l.id}, ${l.daily_wage})"
+                       class="w-4 h-4 text-yellow-500 rounded border-gray-300 cursor-pointer">
+            </td>
+            <td class="px-4 py-4 text-center">
+                <input type="number"
+                       id="advance-${l.id}"
+                       value="${advance}"
+                       min="0" placeholder="0"
+                       class="w-24 px-2 py-1.5 border border-gray-200 rounded-lg text-sm text-center focus:outline-none focus:border-purple-400">
+            </td>
+            <td class="px-4 py-4 text-center">
+                <span id="pay-${l.id}"
+                      class="font-semibold text-sm ${todayPay > 0 ? 'text-green-600' : 'text-gray-400'}">
+                    ₹${todayPay}
+                </span>
+            </td>
+        </tr>`;
+    }).join('');
+
+    updateSummary();
+}
+
+function updateRow(labourId, dailyWage) {
+    const present = document.getElementById(`present-${labourId}`).checked;
+    const half = document.getElementById(`half-${labourId}`).checked;
+    const pay = present ? (half ? dailyWage / 2 : dailyWage) : 0;
+    const payEl = document.getElementById(`pay-${labourId}`);
+    payEl.textContent = `₹${pay}`;
+    payEl.className = `font-semibold text-sm ${pay > 0 ? 'text-green-600' : 'text-gray-400'}`;
+    updateSummary();
+}
+
+function updateSummary() {
+    let present = 0, absent = 0, half = 0, totalWages = 0;
+
+    labourList.forEach(l => {
+        const isPresent = document.getElementById(`present-${l.id}`)?.checked;
+        const isHalf = document.getElementById(`half-${l.id}`)?.checked;
+        if (isPresent) {
+            present++;
+            totalWages += isHalf ? l.daily_wage / 2 : l.daily_wage;
+            if (isHalf) half++;
+        } else {
+            absent++;
+        }
+    });
+
+    document.getElementById('present-count').textContent = present;
+    document.getElementById('absent-count').textContent = absent;
+    document.getElementById('half-count').textContent = half;
+    document.getElementById('today-wages').textContent =
+        '₹' + totalWages.toLocaleString('en-IN');
+    document.getElementById('att-summary').textContent =
+        `${present} present, ${absent} absent`;
+}
+
+function markAll(present) {
+    labourList.forEach(l => {
+        const cb = document.getElementById(`present-${l.id}`);
+        if (cb) {
+            cb.checked = present;
+            updateRow(l.id, l.daily_wage);
+        }
+    });
+}
+
+async function submitBulkAttendance() {
+    const date = document.getElementById('att-date').value;
+    const attendanceList = labourList.map(l => ({
+        labour_id: l.id,
+        is_present: document.getElementById(`present-${l.id}`)?.checked || false,
+        half_day: document.getElementById(`half-${l.id}`)?.checked || false,
+        advance_amount: parseFloat(
+            document.getElementById(`advance-${l.id}`)?.value || 0
+        )
+    }));
+
+    showLoading();
+    try {
+        const data = await apiRequest(
+            '/api/labour/attendance/bulk', 'POST',
+            { date, attendance_list: attendanceList }
+        );
+        hideLoading();
+        if (data.success) {
+            showToast(data.message, 'success');
+        } else {
+            showToast(data.message, 'error');
+        }
+    } catch (e) {
+        hideLoading();
+        showToast('Failed to save attendance', 'error');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadLaboursForAttendance);
+</script>
+{% endblock %}

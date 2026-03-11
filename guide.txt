@@ -1,0 +1,105 @@
+==============================================================
+   AI EVENT PLANNER - Fresh Laptop Setup Guide
+==============================================================
+
+PREREQUISITES
+--------------------------------------------------------------
+1. Python 3.10 or higher
+   - Download: https://www.python.org/downloads/
+   - IMPORTANT: Check "Add Python to PATH" during installation
+
+2. Git
+   - Download: https://git-scm.com/downloads
+
+3. VS Code (optional, recommended)
+   - Download: https://code.visualstudio.com/
+
+Verify installation in PowerShell:
+   python --version
+   git --version
+
+
+STEP 1: Clone the Repository
+--------------------------------------------------------------
+   git clone https://github.com/Parani6379/AI_Event_Planner.git c:\event_management
+   cd c:\event_management
+
+
+STEP 2: Create a Virtual Environment
+--------------------------------------------------------------
+   python -m venv venv
+   .\venv\Scripts\Activate
+
+   You should see (venv) in your terminal prompt.
+
+
+STEP 3: Install Dependencies
+--------------------------------------------------------------
+   pip install -r requirements.txt
+
+   This installs:
+   - flask           : Web framework
+   - flask-sqlalchemy : Database ORM
+   - flask-jwt-extended : Authentication
+   - flask-cors      : Cross-origin support
+   - pillow          : Image processing
+   - reportlab       : PDF / invoice generation
+   - requests        : HTTP client (for AI APIs)
+   - werkzeug        : WSGI utilities
+   - python-dotenv   : Environment variable loading
+
+
+STEP 4: Set Up the .env File
+--------------------------------------------------------------
+   copy .env.example .env
+
+   Then open .env in a text editor and fill in your API keys:
+
+   SECRET_KEY=your_super_secret_key_change_this_in_production
+   JWT_SECRET_KEY=your_jwt_secret_key_change_this_too
+
+   # Optional - for AI features
+   GEMINI_API_KEY=<your key from https://aistudio.google.com/apikey>
+   STABILITY_API_KEY=<your key from https://platform.stability.ai/account/keys>
+
+   NOTE: The app works without API keys, but the AI chatbot
+         and decoration preview features will be disabled.
+
+
+STEP 5: Run the Application
+--------------------------------------------------------------
+   python run.py
+
+   You should see:
+      Default admin created: admin / admin123
+      * Running on http://0.0.0.0:5000
+
+   NOTE: The SQLite database and upload folders are created
+         automatically on the first run. No manual setup needed.
+
+
+STEP 6: Access the Application
+--------------------------------------------------------------
+   Customer Homepage : http://localhost:5000/
+   Admin Login       : http://localhost:5000/admin/login
+
+   Default Admin Credentials:
+      Username : admin
+      Password : admin123
+
+
+==============================================================
+   QUICK REFERENCE (All Commands)
+==============================================================
+
+   git clone https://github.com/Parani6379/AI_Event_Planner.git c:\event_management
+   cd c:\event_management
+   python -m venv venv
+   .\venv\Scripts\Activate
+   pip install -r requirements.txt
+   copy .env.example .env
+   python run.py
+
+   Then open: http://localhost:5000
+
+==============================================================

@@ -1,0 +1,347 @@
+{% extends "customer/base.html" %}
+{% block title %}Services — Event Planner Pro{% endblock %}
+
+{% block content %}
+
+<!-- ── Page Hero ──────────────────────────────────────── -->
+<section class="hero-gradient py-20 text-center">
+    <div class="max-w-3xl mx-auto px-4">
+        <span class="inline-block bg-white bg-opacity-10 border border-white border-opacity-20 text-white text-sm px-4 py-2 rounded-full mb-4">
+            <i class="fas fa-star text-yellow-400 mr-2"></i>What We Offer
+        </span>
+        <h1 class="text-4xl lg:text-5xl font-black text-white mb-4">Our Services</h1>
+        <p class="text-purple-200 text-lg">
+            Complete event decoration solutions tailored to your style and budget
+        </p>
+    </div>
+</section>
+
+<!-- ── Services Detail ────────────────────────────────── -->
+<section class="py-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- Wedding -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
+            <div>
+                <span class="inline-block bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold uppercase mb-4">
+                    Most Popular
+                </span>
+                <h2 class="text-3xl font-black text-gray-800 mb-4">
+                    <i class="fas fa-heart text-red-500 mr-2"></i>Wedding Decoration
+                </h2>
+                <p class="text-gray-600 leading-relaxed mb-6">
+                    Your wedding day deserves nothing but perfection. Our expert team crafts breathtaking wedding decorations that reflect your love story and personal style, creating an atmosphere that will be remembered for a lifetime.
+                </p>
+                <div class="space-y-3 mb-8">
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Bridal stage & mandap decoration</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Premium floral arrangements & backdrops</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">LED lighting & fairy light setups</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Table centrepieces & aisle decoration</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Entrance arch & welcome gate design</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="/booking"
+                       class="px-6 py-3 bg-red-500 text-white rounded-2xl font-bold hover:bg-red-600 transition-colors">
+                        Book Wedding
+                    </a>
+                    <a href="/gallery?category=Wedding"
+                       class="px-6 py-3 border border-red-300 text-red-600 rounded-2xl font-bold hover:bg-red-50 transition-colors">
+                        View Designs
+                    </a>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-2xl overflow-hidden h-48 bg-red-100">
+                    <img src="https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=400&q=80"
+                         class="w-full h-full object-cover" alt="Wedding">
+                </div>
+                <div class="rounded-2xl overflow-hidden h-48 bg-red-100 mt-6">
+                    <img src="https://images.unsplash.com/photo-1464366400600-7168b8af9bc3?w=400&q=80"
+                         class="w-full h-full object-cover" alt="Wedding 2">
+                </div>
+            </div>
+        </div>
+
+        <!-- Temple Festival -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
+            <div class="order-2 lg:order-1 grid grid-cols-2 gap-3">
+                <div class="rounded-2xl overflow-hidden h-48 bg-orange-100">
+                    <img src="https://images.unsplash.com/photo-1561518776-e76a5e48f731?w=400&q=80"
+                         class="w-full h-full object-cover" alt="Temple">
+                </div>
+                <div class="rounded-2xl overflow-hidden h-48 bg-orange-100 mt-6">
+                    <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&q=80"
+                         class="w-full h-full object-cover" alt="Festival">
+                </div>
+            </div>
+            <div class="order-1 lg:order-2">
+                <span class="inline-block bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold uppercase mb-4">
+                    Traditional
+                </span>
+                <h2 class="text-3xl font-black text-gray-800 mb-4">
+                    <i class="fas fa-place-of-worship text-orange-500 mr-2"></i>Temple Festival Decoration
+                </h2>
+                <p class="text-gray-600 leading-relaxed mb-6">
+                    Honour your traditions with authentic South Indian temple festival decorations. We use fresh marigolds, sacred plants, and traditional elements to create a deeply meaningful and visually stunning ambiance.
+                </p>
+                <div class="space-y-3 mb-8">
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Fresh marigold & jasmine garlands</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Banana leaf & mango leaf toranam</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Traditional kolam & rangoli</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Diya & lamp arrangements</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Festival chariot & puja mandap</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="/booking"
+                       class="px-6 py-3 bg-orange-500 text-white rounded-2xl font-bold hover:bg-orange-600 transition-colors">
+                        Book Festival
+                    </a>
+                    <a href="/gallery?category=Temple+Festival"
+                       class="px-6 py-3 border border-orange-300 text-orange-600 rounded-2xl font-bold hover:bg-orange-50 transition-colors">
+                        View Designs
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reception -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-20">
+            <div>
+                <span class="inline-block bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold uppercase mb-4">
+                    Modern & Elegant
+                </span>
+                <h2 class="text-3xl font-black text-gray-800 mb-4">
+                    <i class="fas fa-glass-cheers text-blue-500 mr-2"></i>Reception Decoration
+                </h2>
+                <p class="text-gray-600 leading-relaxed mb-6">
+                    Make your reception a night to remember with our sophisticated and contemporary decoration styles. From intimate gatherings to grand celebrations, we create the perfect backdrop for your special moments.
+                </p>
+                <div class="space-y-3 mb-8">
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Grand entrance & stage decoration</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Modern LED wall & backdrop designs</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Balloon & floral ceiling decoration</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Themed table settings & centrepieces</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-sm">
+                        <div class="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check text-green-600 text-xs"></i>
+                        </div>
+                        <span class="text-gray-700">Ambient & accent lighting setup</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="/booking"
+                       class="px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-colors">
+                        Book Reception
+                    </a>
+                    <a href="/gallery?category=Reception"
+                       class="px-6 py-3 border border-blue-300 text-blue-600 rounded-2xl font-bold hover:bg-blue-50 transition-colors">
+                        View Designs
+                    </a>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-2xl overflow-hidden h-48 bg-blue-100">
+                    <img src="https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=400&q=80"
+                         class="w-full h-full object-cover" alt="Reception">
+                </div>
+                <div class="rounded-2xl overflow-hidden h-48 bg-blue-100 mt-6">
+                    <img src="https://images.unsplash.com/photo-1478147427282-58a87a120781?w=400&q=80"
+                         class="w-full h-full object-cover" alt="Reception 2">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── Pricing Table ───────────────────────────────────── -->
+<section class="py-16 bg-gray-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-black text-gray-800">Decoration Packages</h2>
+            <p class="text-gray-500 mt-2">Transparent pricing for all budgets</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Basic -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="text-center mb-5">
+                    <p class="text-gray-500 text-sm font-medium">Basic</p>
+                    <p class="text-3xl font-black text-gray-800 mt-2">₹25,000</p>
+                    <p class="text-gray-400 text-xs mt-1">Starting price</p>
+                </div>
+                <ul class="space-y-2 text-sm text-gray-600 mb-6">
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>Stage decoration</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>Basic flowers</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>Simple lighting</li>
+                    <li class="flex items-center gap-2 text-gray-300"><i class="fas fa-times text-xs"></i>LED backdrop</li>
+                    <li class="flex items-center gap-2 text-gray-300"><i class="fas fa-times text-xs"></i>Premium flowers</li>
+                </ul>
+                <a href="/booking"
+                   class="block text-center py-2.5 border-2 border-purple-300 text-purple-600 rounded-xl text-sm font-semibold hover:bg-purple-50 transition-colors">
+                    Get Started
+                </a>
+            </div>
+
+            <!-- Standard -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="text-center mb-5">
+                    <p class="text-gray-500 text-sm font-medium">Standard</p>
+                    <p class="text-3xl font-black text-gray-800 mt-2">₹75,000</p>
+                    <p class="text-gray-400 text-xs mt-1">Starting price</p>
+                </div>
+                <ul class="space-y-2 text-sm text-gray-600 mb-6">
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>Premium stage</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>Fresh flowers</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>LED lighting</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>Photo backdrop</li>
+                    <li class="flex items-center gap-2 text-gray-300"><i class="fas fa-times text-xs"></i>Venue-wide decor</li>
+                </ul>
+                <a href="/booking"
+                   class="block text-center py-2.5 border-2 border-purple-300 text-purple-600 rounded-xl text-sm font-semibold hover:bg-purple-50 transition-colors">
+                    Get Started
+                </a>
+            </div>
+
+            <!-- Premium -->
+            <div class="bg-purple-600 rounded-2xl p-6 shadow-lg border border-purple-500 relative">
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+                    <span class="bg-yellow-400 text-yellow-900 px-3 py-1 rounded-full text-xs font-bold">POPULAR</span>
+                </div>
+                <div class="text-center mb-5">
+                    <p class="text-purple-200 text-sm font-medium">Premium</p>
+                    <p class="text-3xl font-black text-white mt-2">₹2,00,000</p>
+                    <p class="text-purple-300 text-xs mt-1">Starting price</p>
+                </div>
+                <ul class="space-y-2 text-sm text-white mb-6">
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-yellow-300 text-xs"></i>Luxury flowers</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-yellow-300 text-xs"></i>Full venue decor</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-yellow-300 text-xs"></i>Professional team</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-yellow-300 text-xs"></i>Photography decor</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-yellow-300 text-xs"></i>AI design preview</li>
+                </ul>
+                <a href="/booking"
+                   class="block text-center py-2.5 bg-white text-purple-700 rounded-xl text-sm font-bold hover:bg-purple-50 transition-colors">
+                    Get Started
+                </a>
+            </div>
+
+            <!-- Royal -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+                <div class="text-center mb-5">
+                    <p class="text-gray-500 text-sm font-medium">Royal</p>
+                    <p class="text-3xl font-black text-gray-800 mt-2">₹5,00,000</p>
+                    <p class="text-gray-400 text-xs mt-1">Starting price</p>
+                </div>
+                <ul class="space-y-2 text-sm text-gray-600 mb-6">
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>Imported flowers</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>Crystal chandeliers</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>Complete venue</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>VIP team</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i>3D custom design</li>
+                </ul>
+                <a href="/contact"
+                   class="block text-center py-2.5 border-2 border-purple-300 text-purple-600 rounded-xl text-sm font-semibold hover:bg-purple-50 transition-colors">
+                    Contact Us
+                </a>
+            </div>
+        </div>
+
+        <p class="text-center text-gray-400 text-sm mt-6">
+            * All prices are approximate and vary based on event requirements, venue size, and location.
+        </p>
+    </div>
+</section>
+
+<!-- ── CTA ────────────────────────────────────────────── -->
+<section class="py-14 bg-white text-center">
+    <div class="max-w-2xl mx-auto px-4">
+        <h2 class="text-2xl font-black text-gray-800 mb-3">
+            Not sure which package fits you?
+        </h2>
+        <p class="text-gray-500 mb-6">
+            Use our AI Budget Calculator or contact us for a custom quote!
+        </p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="/booking"
+               class="px-8 py-3.5 bg-purple-600 text-white rounded-2xl font-bold hover:bg-purple-700 transition-colors">
+                <i class="fas fa-robot mr-2"></i>Try AI Estimator
+            </a>
+            <a href="/contact"
+               class="px-8 py-3.5 border-2 border-purple-300 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors">
+                <i class="fas fa-phone mr-2"></i>Get Custom Quote
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

@@ -1,0 +1,291 @@
+{% extends "admin/base.html" %}
+{% block title %}Labour Management{% endblock %}
+{% block page_title %}Labour Management{% endblock %}
+{% block page_subtitle %}Manage your decoration team{% endblock %}
+
+{% block content %}
+
+<!-- ── Top Bar ────────────────────────────────────────── -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div class="flex items-center gap-3">
+        <div class="bg-purple-100 p-3 rounded-xl">
+            <i class="fas fa-hard-hat text-purple-600 text-xl"></i>
+        </div>
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">Labour Team</h2>
+            <p class="text-sm text-gray-500" id="labour-count">Loading...</p>
+        </div>
+    </div>
+    <div class="flex gap-3">
+        <a href="/admin/labour/attendance"
+           class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-colors">
+            <i class="fas fa-user-check"></i> Mark Attendance
+        </a>
+        <a href="/admin/labour/add"
+           class="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors">
+            <i class="fas fa-plus"></i> Add Labour
+        </a>
+    </div>
+</div>
+
+<!-- ── Summary Cards ──────────────────────────────────── -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-2xl font-bold text-purple-600" id="total-labours">—</p>
+        <p class="text-xs text-gray-500 mt-1">Total Labours</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-2xl font-bold text-green-600" id="active-labours">—</p>
+        <p class="text-xs text-gray-500 mt-1">Active</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-2xl font-bold text-blue-600" id="total-wages">—</p>
+        <p class="text-xs text-gray-500 mt-1">Total Wages Due</p>
+    </div>
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+        <p class="text-2xl font-bold text-red-500" id="pending-wages">—</p>
+        <p class="text-xs text-gray-500 mt-1">Pending Balance</p>
+    </div>
+</div>
+
+<!-- ── Filters ────────────────────────────────────────── -->
+<div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-5">
+    <div class="flex flex-col md:flex-row gap-3">
+        <div class="flex-1 relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" id="search-input"
+                   placeholder="Search by name or phone..."
+                   oninput="filterLabours()"
+                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+        </div>
+        <select id="status-filter" onchange="filterLabours()"
+                class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+            <option value="">All Status</option>
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+        </select>
+    </div>
+</div>
+
+<!-- ── Labour Grid ────────────────────────────────────── -->
+<div id="labour-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+    <div class="col-span-full text-center py-16 text-gray-400">
+        <i class="fas fa-spinner fa-spin text-4xl mb-3"></i>
+        <p>Loading labour data...</p>
+    </div>
+</div>
+
+<!-- ── Pagination ─────────────────────────────────────── -->
+<div id="pagination" class="flex justify-center gap-2 mt-6"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 1;
+let allLabours = [];
+
+async function loadLabours(page = 1) {
+    const search = document.getElementById('search-input').value;
+    const status = document.getElementById('status-filter').value;
+
+    let url = `/api/labour/?page=${page}&per_page=9`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (status !== '') url += `&is_active=${status}`;
+
+    try {
+        const data = await apiRequest(url);
+        if (!data.success) return;
+
+        allLabours = data.data.labours;
+        renderLabours(data.data.labours);
+        renderPagination(data.data.pages, page);
+
+        // Summary
+        document.getElementById('labour-count').textContent =
+            `${data.data.total} labour(s) found`;
+        document.getElementById('total-labours').textContent =
+            data.data.total;
+
+        const active = data.data.labours.filter(l => l.is_active).length;
+        document.getElementById('active-labours').textContent = active;
+
+        const totalWages = data.data.labours.reduce(
+            (s, l) => s + (l.total_earned || 0), 0
+        );
+        const pendingWages = data.data.labours.reduce(
+            (s, l) => s + (l.pending_balance || 0), 0
+        );
+        document.getElementById('total-wages').textContent =
+            '₹' + totalWages.toLocaleString('en-IN');
+        document.getElementById('pending-wages').textContent =
+            '₹' + pendingWages.toLocaleString('en-IN');
+
+    } catch (e) {
+        showToast('Failed to load labours', 'error');
+    }
+}
+
+function renderLabours(labours) {
+    const grid = document.getElementById('labour-grid');
+
+    if (labours.length === 0) {
+        grid.innerHTML = `
+            <div class="col-span-full text-center py-16 text-gray-400">
+                <i class="fas fa-hard-hat text-5xl mb-4"></i>
+                <p class="text-lg font-medium">No labour found</p>
+                <a href="/admin/labour/add"
+                   class="mt-3 inline-block bg-purple-600 text-white px-5 py-2 rounded-xl text-sm">
+                   + Add First Labour
+                </a>
+            </div>`;
+        return;
+    }
+
+    grid.innerHTML = labours.map(l => `
+        <div class="card-hover bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <!-- Card Header -->
+            <div class="bg-gradient-to-r from-purple-600 to-purple-800 p-4 flex items-center gap-3">
+                <div class="w-14 h-14 rounded-full overflow-hidden border-2 border-white flex-shrink-0 bg-white">
+                    ${l.photo_path
+                        ? `<img src="/static/${l.photo_path}" class="w-full h-full object-cover">`
+                        : `<div class="w-full h-full bg-purple-200 flex items-center justify-center">
+                               <span class="text-purple-700 font-bold text-xl">
+                                   ${l.name.charAt(0).toUpperCase()}
+                               </span>
+                           </div>`
+                    }
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-bold text-white text-sm truncate">${l.name}</h3>
+                    <p class="text-purple-200 text-xs">${l.phone}</p>
+                    <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium
+                        ${l.is_active ? 'bg-green-400 text-green-900' : 'bg-red-400 text-red-900'}">
+                        ${l.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                </div>
+                <div class="text-right">
+                    <p class="text-white font-bold text-sm">₹${l.daily_wage}</p>
+                    <p class="text-purple-200 text-xs">per day</p>
+                </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="p-4">
+                <div class="grid grid-cols-3 gap-3 mb-4">
+                    <div class="text-center bg-purple-50 rounded-xl p-2">
+                        <p class="text-lg font-bold text-purple-600">${l.total_days_worked}</p>
+                        <p class="text-xs text-gray-500">Days</p>
+                    </div>
+                    <div class="text-center bg-green-50 rounded-xl p-2">
+                        <p class="text-sm font-bold text-green-600">₹${(l.total_earned||0).toLocaleString('en-IN')}</p>
+                        <p class="text-xs text-gray-500">Earned</p>
+                    </div>
+                    <div class="text-center ${l.pending_balance > 0 ? 'bg-red-50' : 'bg-gray-50'} rounded-xl p-2">
+                        <p class="text-sm font-bold ${l.pending_balance > 0 ? 'text-red-500' : 'text-gray-500'}">
+                            ₹${(l.pending_balance||0).toLocaleString('en-IN')}
+                        </p>
+                        <p class="text-xs text-gray-500">Pending</p>
+                    </div>
+                </div>
+
+                <div class="text-xs text-gray-500 mb-3 flex items-center gap-1">
+                    <i class="fas fa-map-marker-alt text-purple-400"></i>
+                    ${l.address || 'Address not provided'}
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="/admin/labour/${l.id}"
+                       class="flex-1 text-center py-2 bg-purple-600 text-white rounded-xl text-xs font-medium hover:bg-purple-700 transition-colors">
+                        <i class="fas fa-eye mr-1"></i>View
+                    </a>
+                    <button onclick="editLabour(${l.id})"
+                            class="flex-1 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-medium hover:bg-blue-100 transition-colors">
+                        <i class="fas fa-edit mr-1"></i>Edit
+                    </button>
+                    <button onclick="addAdvance(${l.id}, '${l.name}')"
+                            class="flex-1 py-2 bg-green-50 text-green-600 rounded-xl text-xs font-medium hover:bg-green-100 transition-colors">
+                        <i class="fas fa-rupee-sign mr-1"></i>Advance
+                    </button>
+                    <button onclick="toggleLabourStatus(${l.id}, ${l.is_active})"
+                            class="py-2 px-3 ${l.is_active ? 'bg-red-50 text-red-500 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'} rounded-xl text-xs font-medium transition-colors"
+                            title="${l.is_active ? 'Deactivate' : 'Activate'}">
+                        <i class="fas ${l.is_active ? 'fa-user-slash' : 'fa-user-check'}"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function renderPagination(totalPages, current) {
+    const el = document.getElementById('pagination');
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+
+    let html = '';
+    for (let i = 1; i <= totalPages; i++) {
+        html += `
+            <button onclick="loadLabours(${i})"
+                    class="w-9 h-9 rounded-lg text-sm font-medium transition-colors
+                    ${i === current
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-white text-gray-600 hover:bg-purple-50 border border-gray-200'}">
+                ${i}
+            </button>`;
+    }
+    el.innerHTML = html;
+}
+
+function filterLabours() {
+    clearTimeout(window._filterTimer);
+    window._filterTimer = setTimeout(() => loadLabours(1), 400);
+}
+
+function editLabour(id) {
+    window.location.href = `/admin/labour/${id}`;
+}
+
+// ── Toggle Labour Active/Inactive ─────────────────────
+async function toggleLabourStatus(labourId, isCurrentlyActive) {
+    const action = isCurrentlyActive ? 'deactivate' : 'activate';
+    if (!confirm(`Are you sure you want to ${action} this labour?`)) return;
+
+    // DELETE = deactivate (soft delete), PUT with is_active=true = reactivate
+    let data;
+    if (isCurrentlyActive) {
+        data = await apiRequest(`/api/labour/${labourId}`, 'DELETE');
+    } else {
+        data = await apiRequest(`/api/labour/${labourId}`, 'PUT', { is_active: true });
+    }
+    if (data.success) {
+        showToast(data.message || `Labour ${action}d.`, 'success');
+        loadLabours(currentPage);
+    } else {
+        showToast(data.message || 'Action failed', 'error');
+    }
+}
+
+// ── Advance Payment Modal ─────────────────────────────
+function addAdvance(labourId, labourName) {
+    const amount = prompt(`Enter advance payment amount for ${labourName} (₹):`);
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) return;
+
+    const note = prompt('Enter note (optional):') || '';
+
+    apiRequest(`/api/labour/${labourId}/advance`, 'POST', {
+        amount: parseFloat(amount),
+        note: note,
+        date: new Date().toISOString().split('T')[0]
+    }).then(data => {
+        if (data.success) {
+            showToast(`Advance ₹${amount} recorded for ${labourName}`, 'success');
+            loadLabours(currentPage);
+        } else {
+            showToast(data.message, 'error');
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => loadLabours(1));
+</script>
+{% endblock %}

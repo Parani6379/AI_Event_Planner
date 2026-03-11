@@ -1,0 +1,167 @@
+{% extends 'admin/base.html' %}
+{% block title %}Upload Design{% endblock %}
+{% block page_title %}Upload Design{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+    <div class="bg-gradient-to-r from-purple-600 to-purple-800 p-6">
+      <h2 class="text-white font-bold text-xl">Upload New Design</h2>
+      <p class="text-purple-200 text-sm mt-1">Add decoration photos to the gallery</p>
+    </div>
+
+    <div class="p-6 space-y-5">
+
+      <!-- Alert -->
+      <div id="alert" class="hidden p-3 rounded-xl text-sm font-medium"></div>
+
+      <!-- Image Upload Zone -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Design Image *</label>
+        <div id="uploadZone"
+          class="border-2 border-dashed border-purple-300 rounded-2xl p-8 text-center cursor-pointer hover:border-purple-500 hover:bg-purple-50 transition"
+          onclick="document.getElementById('imageInput').click()">
+          <div id="uploadPlaceholder">
+            <i class="fas fa-cloud-upload-alt text-4xl text-purple-400 mb-3"></i>
+            <p class="text-gray-600 font-medium">Click to upload image</p>
+            <p class="text-gray-400 text-sm mt-1">PNG, JPG, JPEG, WEBP up to 10MB</p>
+          </div>
+          <!-- Preview -->
+          <img id="imagePreview" class="hidden mx-auto max-h-64 rounded-xl object-cover"/>
+          <input type="file" id="imageInput" accept="image/*" class="hidden" onchange="previewImage(this)"/>
+        </div>
+        <p id="fileName" class="text-xs text-gray-400 mt-1"></p>
+      </div>
+
+      <!-- Title -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+        <input type="text" id="title" placeholder="e.g. Royal Rose Wedding Stage"
+          class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"/>
+      </div>
+
+      <!-- Category -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Category *</label>
+        <select id="category" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none">
+          <option value="">Select category...</option>
+          <option value="Wedding">Wedding</option>
+          <option value="Temple Festival">Temple Festival</option>
+          <option value="Reception">Reception</option>
+        </select>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+        <textarea id="description" rows="3" placeholder="Brief description of the design..."
+          class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none resize-none"></textarea>
+      </div>
+
+      <!-- Featured -->
+      <div class="flex items-center gap-3 p-4 bg-yellow-50 rounded-xl">
+        <input type="checkbox" id="isFeatured" class="w-4 h-4 accent-purple-600"/>
+        <div>
+          <label for="isFeatured" class="text-sm font-medium text-gray-700 cursor-pointer">Mark as Featured</label>
+          <p class="text-xs text-gray-400">Featured designs appear on the home page</p>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex gap-3 pt-2">
+        <button onclick="uploadDesign()" id="uploadBtn"
+          class="flex-1 py-3 bg-gradient-to-r from-purple-600 to-purple-800 text-white rounded-xl font-semibold hover:opacity-90 transition flex items-center justify-center gap-2">
+          <i id="uploadIcon" class="fas fa-upload"></i>
+          <span id="uploadText">Upload Design</span>
+        </button>
+        <a href="/admin/designs"
+          class="px-6 py-3 border border-gray-200 text-gray-600 rounded-xl font-medium hover:bg-gray-50 transition flex items-center gap-2">
+          <i class="fas fa-arrow-left"></i> Back
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function previewImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+
+  // Show file name
+  document.getElementById('fileName').textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+
+  // Show preview
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const preview = document.getElementById('imagePreview');
+    const placeholder = document.getElementById('uploadPlaceholder');
+    preview.src = e.target.result;
+    preview.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+function showAlert(msg, type='error') {
+  const el = document.getElementById('alert');
+  el.className = `p-3 rounded-xl text-sm font-medium ${
+    type === 'error'
+      ? 'bg-red-50 text-red-700 border border-red-200'
+      : 'bg-green-50 text-green-700 border border-green-200'
+  }`;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  el.scrollIntoView({ behavior: 'smooth' });
+}
+
+async function uploadDesign() {
+  const title    = document.getElementById('title').value.trim();
+  const category = document.getElementById('category').value;
+  const imageFile= document.getElementById('imageInput').files[0];
+
+  if (!title)     { showAlert('Please enter a title.'); return; }
+  if (!category)  { showAlert('Please select a category.'); return; }
+  if (!imageFile) { showAlert('Please select an image to upload.'); return; }
+
+  // Loading state
+  document.getElementById('uploadBtn').disabled = true;
+  document.getElementById('uploadIcon').className = 'fas fa-spinner fa-spin';
+  document.getElementById('uploadText').textContent = 'Uploading...';
+
+  try {
+    const formData = new FormData();
+    formData.append('title',       title);
+    formData.append('category',    category);
+    formData.append('description', document.getElementById('description').value.trim());
+    formData.append('is_featured', document.getElementById('isFeatured').checked);
+    formData.append('image',       imageFile);
+
+    const res  = await fetch('/api/designs/', {
+      method:  'POST',
+      headers: { 'Authorization': `Bearer ${getToken()}` },
+      body:    formData
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showAlert('Design uploaded successfully!', 'success');
+      setTimeout(() => window.location.href = '/admin/designs', 1500);
+    } else {
+      showAlert(data.message || 'Upload failed.');
+      document.getElementById('uploadBtn').disabled = false;
+      document.getElementById('uploadIcon').className = 'fas fa-upload';
+      document.getElementById('uploadText').textContent = 'Upload Design';
+    }
+  } catch (err) {
+    showAlert('Server error: ' + err.message);
+    document.getElementById('uploadBtn').disabled = false;
+    document.getElementById('uploadIcon').className = 'fas fa-upload';
+    document.getElementById('uploadText').textContent = 'Upload Design';
+  }
+}
+</script>
+{% endblock %}

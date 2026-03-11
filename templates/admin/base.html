@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel{% endblock %} — Event Planner Pro</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#7C3AED',
+                        secondary: '#5B21B6',
+                        accent: '#A78BFA',
+                        dark: '#1F2937',
+                        light: '#F9FAFB'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; }
+        .sidebar-link:hover { background: rgba(124,58,237,0.15); }
+        .sidebar-link.active { background: rgba(124,58,237,0.25); border-left: 4px solid #7C3AED; }
+        .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
+        .card-hover:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #7C3AED; border-radius: 3px; }
+        .sidebar { transition: all 0.3s ease; }
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); position: fixed; z-index: 50; }
+            .sidebar.open { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+<!-- ── Main Layout ───────────────────────────────────── -->
+<div class="flex min-h-screen">
+
+    <!-- ── Sidebar ───────────────────────────────────── -->
+    <aside id="sidebar" class="sidebar bg-gray-900 text-white w-64 min-h-screen flex-shrink-0">
+
+        <!-- Logo -->
+        <div class="p-5 border-b border-gray-700 flex items-center gap-3">
+            <div class="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
+                <i class="fas fa-star text-white text-lg"></i>
+            </div>
+            <div>
+                <p class="font-bold text-white text-sm leading-tight" id="sidebar-business-name">Event Planner Pro</p>
+                <p class="text-gray-400 text-xs">Admin Panel</p>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="py-4 px-3 flex flex-col gap-1">
+
+            <a href="/admin/dashboard"
+               class="sidebar-link {% if request.path == '/admin/dashboard' %}active{% endif %} flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-white transition-all text-sm">
+                <i class="fas fa-tachometer-alt w-5 text-center"></i>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="/admin/bookings"
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-white transition-all text-sm">
+                <i class="fas fa-calendar-check w-5 text-center"></i>
+                <span>Bookings</span>
+                <span id="pending-badge" class="ml-auto bg-purple-600 text-white text-xs px-2 py-0.5 rounded-full hidden"></span>
+            </a>
+
+            <a href="/admin/customers"
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-white transition-all text-sm">
+                <i class="fas fa-users w-5 text-center"></i>
+                <span>Customers</span>
+            </a>
+
+            <a href="/admin/billing"
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-white transition-all text-sm">
+                <i class="fas fa-file-invoice-dollar w-5 text-center"></i>
+                <span>Billing</span>
+            </a>
+
+            <a href="/admin/labour"
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-white transition-all text-sm">
+                <i class="fas fa-hard-hat w-5 text-center"></i>
+                <span>Labour</span>
+            </a>
+
+            <a href="/admin/labour/attendance"
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-white transition-all text-sm">
+                <i class="fas fa-user-check w-5 text-center"></i>
+                <span>Attendance</span>
+            </a>
+
+            <a href="/admin/expenses"
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-white transition-all text-sm">
+                <i class="fas fa-receipt w-5 text-center"></i>
+                <span>Expenses</span>
+            </a>
+
+            <a href="/admin/designs"
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-white transition-all text-sm">
+                <i class="fas fa-images w-5 text-center"></i>
+                <span>Designs & Gallery</span>
+            </a>
+
+            <div class="border-t border-gray-700 my-2"></div>
+
+            <a href="/admin/profile"
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-white transition-all text-sm">
+                <i class="fas fa-user-cog w-5 text-center"></i>
+                <span>Profile Settings</span>
+            </a>
+
+            <a href="/" target="_blank"
+               class="sidebar-link flex items-center gap-3 px-4 py-3 rounded-lg text-gray-300 hover:text-white transition-all text-sm">
+                <i class="fas fa-globe w-5 text-center"></i>
+                <span>View Website</span>
+            </a>
+
+            <button onclick="adminLogout()"
+                    class="sidebar-link w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-400 hover:text-red-300 hover:bg-red-900 hover:bg-opacity-20 transition-all text-sm mt-2">
+                <i class="fas fa-sign-out-alt w-5 text-center"></i>
+                <span>Logout</span>
+            </button>
+        </nav>
+    </aside>
+
+    <!-- ── Main Content ───────────────────────────────── -->
+    <div class="flex-1 flex flex-col min-w-0">
+
+        <!-- Top Navbar -->
+        <header class="bg-white shadow-sm px-6 py-4 flex items-center justify-between sticky top-0 z-40">
+            <div class="flex items-center gap-4">
+                <!-- Mobile menu toggle -->
+                <button onclick="toggleSidebar()"
+                        class="md:hidden text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div>
+                    <h1 class="text-lg font-bold text-gray-800">{% block page_title %}Dashboard{% endblock %}</h1>
+                    <p class="text-xs text-gray-500">{% block page_subtitle %}Welcome back, Admin{% endblock %}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <!-- Date Display -->
+                <div class="hidden md:flex items-center gap-2 text-sm text-gray-500">
+                    <i class="fas fa-calendar"></i>
+                    <span id="current-date"></span>
+                </div>
+
+                <!-- Admin Info -->
+                <div class="flex items-center gap-2 bg-purple-50 px-3 py-2 rounded-lg">
+                    <div class="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-white text-xs"></i>
+                    </div>
+                    <div class="hidden md:block">
+                        <p class="text-sm font-semibold text-gray-800" id="admin-name">Admin</p>
+                        <p class="text-xs text-gray-500">Administrator</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="flex-1 p-6 overflow-auto">
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white border-t px-6 py-3 text-center text-xs text-gray-400">
+            © 2026 Event Planner Pro — Admin Panel v1.0
+        </footer>
+    </div>
+</div>
+
+<!-- ── Toast Notification ────────────────────────────── -->
+<div id="toast"
+     class="fixed bottom-6 right-6 z-50 hidden max-w-sm">
+    <div id="toast-inner"
+         class="flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl text-white text-sm font-medium">
+        <i id="toast-icon" class="fas fa-check-circle text-lg"></i>
+        <span id="toast-msg"></span>
+    </div>
+</div>
+
+<!-- ── Loading Overlay ───────────────────────────────── -->
+<div id="loading-overlay"
+     class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden flex items-center justify-center">
+    <div class="bg-white rounded-2xl p-8 flex flex-col items-center gap-4 shadow-2xl">
+        <div class="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-gray-700 font-medium">Processing...</p>
+    </div>
+</div>
+
+<!-- ── Base JavaScript ───────────────────────────────── -->
+<script>
+// ── Token Management ─────────────────────────────────
+const TOKEN_KEY = 'admin_token';
+
+function getToken() {
+    return localStorage.getItem(TOKEN_KEY);
+}
+
+function setToken(token) {
+    localStorage.setItem(TOKEN_KEY, token);
+}
+
+function removeToken() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem('admin_data');
+}
+
+// ── Auth Guard ───────────────────────────────────────
+function checkAuth() {
+    const token = getToken();
+    if (!token) {
+        window.location.href = '/admin/login';
+        return false;
+    }
+    return true;
+}
+
+// ── API Request Helper ───────────────────────────────
+async function apiRequest(url, method = 'GET', data = null, isFormData = false) {
+    const token = getToken();
+    if (!token && !window.location.pathname.includes('/admin/login')) {
+        window.location.href = '/admin/login';
+        return {};
+    }
+    const headers = { 'Authorization': `Bearer ${token}` };
+
+    if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+    }
+
+    const options = { method, headers };
+
+    if (data) {
+        options.body = isFormData ? data : JSON.stringify(data);
+    }
+
+    const response = await fetch(url, options);
+
+    // Handle expired / invalid token → force re-login
+    if (response.status === 401) {
+        removeToken();
+        showToast('Session expired. Please login again.', 'warning');
+        setTimeout(() => { window.location.href = '/admin/login'; }, 1500);
+        return { success: false, message: 'Session expired.' };
+    }
+
+    return response.json();
+}
+
+// ── Toast Notification ───────────────────────────────
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const inner = document.getElementById('toast-inner');
+    const msg = document.getElementById('toast-msg');
+    const icon = document.getElementById('toast-icon');
+
+    msg.textContent = message;
+
+    const configs = {
+        success: { bg: 'bg-green-600', icon: 'fa-check-circle' },
+        error:   { bg: 'bg-red-600',   icon: 'fa-times-circle' },
+        warning: { bg: 'bg-yellow-500', icon: 'fa-exclamation-circle' },
+        info:    { bg: 'bg-blue-600',   icon: 'fa-info-circle' }
+    };
+
+    const cfg = configs[type] || configs.success;
+    inner.className = `flex items-center gap-3 px-5 py-4 rounded-xl shadow-2xl text-white text-sm font-medium ${cfg.bg}`;
+    icon.className = `fas ${cfg.icon} text-lg`;
+
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 3500);
+}
+
+// ── Loading ──────────────────────────────────────────
+function showLoading() {
+    document.getElementById('loading-overlay').classList.remove('hidden');
+}
+function hideLoading() {
+    document.getElementById('loading-overlay').classList.add('hidden');
+}
+
+// ── Admin Logout ─────────────────────────────────────
+function adminLogout() {
+    if (confirm('Are you sure you want to logout?')) {
+        removeToken();
+        window.location.href = '/admin/login';
+    }
+}
+
+// ── Sidebar Toggle ───────────────────────────────────
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+}
+
+// ── Set Current Date ─────────────────────────────────
+function setCurrentDate() {
+    const el = document.getElementById('current-date');
+    if (el) {
+        el.textContent = new Date().toLocaleDateString('en-IN', {
+            weekday: 'short', year: 'numeric',
+            month: 'short', day: 'numeric'
+        });
+    }
+}
+
+// ── Load Admin Info ──────────────────────────────────
+async function loadAdminInfo() {
+    try {
+        const data = await apiRequest('/api/auth/me');
+        if (data.success) {
+            const admin = data.data;  // Fixed: was data.data.user (wrong path)
+            const nameEl = document.getElementById('admin-name');
+            const bizEl = document.getElementById('sidebar-business-name');
+            if (nameEl) nameEl.textContent = admin.username || 'Admin';
+            if (bizEl) bizEl.textContent = admin.business_name || 'Event Planner Pro';
+        }
+    } catch (e) {}
+}
+
+// ── Format Currency ──────────────────────────────────
+function formatCurrency(amount) {
+    return '₹ ' + parseFloat(amount || 0).toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+// ── Format Date ──────────────────────────────────────
+function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric'
+    });
+}
+
+// ── Status Badge ─────────────────────────────────────
+function statusBadge(status) {
+    const map = {
+        'Pending':       'bg-yellow-100 text-yellow-800',
+        'Accepted':      'bg-blue-100 text-blue-800',
+        'Completed':     'bg-green-100 text-green-800',
+        'Rejected':      'bg-red-100 text-red-800',
+        'Cancelled':     'bg-gray-100 text-gray-800',
+        'Paid':          'bg-green-100 text-green-800',
+        'Partially Paid':'bg-orange-100 text-orange-800'
+    };
+    const cls = map[status] || 'bg-gray-100 text-gray-800';
+    return `<span class="px-2 py-1 rounded-full text-xs font-semibold ${cls}">${status}</span>`;
+}
+
+// ── Highlight Active Sidebar Link ────────────────────
+function highlightSidebar() {
+    const path = window.location.pathname;
+    document.querySelectorAll('.sidebar-link').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && path.startsWith(href) && href !== '/') {
+            link.classList.add('active', 'text-white');
+        }
+    });
+}
+
+// ── Init ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+    if (!window.location.pathname.includes('/admin/login')) {
+        checkAuth();
+        loadAdminInfo();
+    }
+    setCurrentDate();
+    highlightSidebar();
+});
+</script>
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

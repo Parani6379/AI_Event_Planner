@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login — Event Planner Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; }
+        .gradient-bg {
+            background: linear-gradient(135deg, #4C1D95 0%, #7C3AED 50%, #A78BFA 100%);
+        }
+        .glass-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus { border-color: #7C3AED; }
+        .login-btn {
+            width: 100%;
+            padding: 0.875rem;
+            background: linear-gradient(135deg, #7C3AED, #5B21B6);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+        .login-btn:hover { opacity: 0.92; transform: translateY(-1px); }
+        .login-btn:active { transform: translateY(0); }
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.1;
+            background: white;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+
+    <!-- Floating Background Shapes -->
+    <div class="floating-shape w-96 h-96 -top-20 -left-20"></div>
+    <div class="floating-shape w-64 h-64 -bottom-10 -right-10"></div>
+    <div class="floating-shape w-48 h-48 top-1/2 left-10"></div>
+
+    <!-- Login Card -->
+    <div class="glass-card w-full max-w-md rounded-3xl shadow-2xl p-8 relative z-10">
+
+        <!-- Logo & Title -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <i class="fas fa-star text-white text-3xl"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-gray-800">Event Planner Pro</h1>
+            <p class="text-gray-500 text-sm mt-1">Admin Panel — Sign In</p>
+        </div>
+
+        <!-- Error Alert -->
+        <div id="error-alert"
+             class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-5 flex items-center gap-2 text-sm">
+            <i class="fas fa-exclamation-circle"></i>
+            <span id="error-msg"></span>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" onsubmit="handleLogin(event)">
+
+            <!-- Username -->
+            <div class="mb-5">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Username or Email
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-user text-gray-400"></i>
+                    </div>
+                    <input type="text"
+                           id="username"
+                           class="input-field"
+                           placeholder="Enter username or email"
+                           required>
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Password
+                </label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-lock text-gray-400"></i>
+                    </div>
+                    <input type="password"
+                           id="password"
+                           class="input-field"
+                           placeholder="Enter password"
+                           required>
+                    <button type="button"
+                            onclick="togglePassword()"
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600">
+                        <i id="eye-icon" class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Login Button -->
+            <button type="submit" id="login-btn" class="login-btn">
+                <span id="btn-text">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                </span>
+                <span id="btn-loading" class="hidden">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>Signing in...
+                </span>
+            </button>
+        </form>
+
+        <!-- Default Credentials Info -->
+        <div class="mt-6 p-4 bg-purple-50 rounded-xl border border-purple-100">
+            <p class="text-xs text-purple-700 font-semibold mb-1">
+                <i class="fas fa-info-circle mr-1"></i>Default Credentials
+            </p>
+            <p class="text-xs text-purple-600">Username: <strong>admin</strong></p>
+            <p class="text-xs text-purple-600">Password: <strong>admin123</strong></p>
+        </div>
+
+        <!-- Footer -->
+        <p class="text-center text-xs text-gray-400 mt-6">
+            © 2026 Event Planner Pro. All rights reserved.
+        </p>
+    </div>
+
+    <script>
+        // Validate existing token before auto-redirecting (prevents stale token loop)
+        (async function() {
+            const token = localStorage.getItem('admin_token');
+            if (token) {
+                try {
+                    const res = await fetch('/api/auth/me', {
+                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                    });
+                    if (res.ok) {
+                        window.location.href = '/admin/dashboard';
+                    } else {
+                        // Token invalid/expired — clear it so login form shows
+                        localStorage.removeItem('admin_token');
+                        localStorage.removeItem('admin_data');
+                    }
+                } catch(e) {
+                    localStorage.removeItem('admin_token');
+                    localStorage.removeItem('admin_data');
+                }
+            }
+        })();
+
+        async function handleLogin(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const btnText = document.getElementById('btn-text');
+            const btnLoading = document.getElementById('btn-loading');
+            const errorAlert = document.getElementById('error-alert');
+            const errorMsg = document.getElementById('error-msg');
+
+            // Show loading
+            btnText.classList.add('hidden');
+            btnLoading.classList.remove('hidden');
+            errorAlert.classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/auth/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Store token & admin data
+                    localStorage.setItem('admin_token', data.data.access_token);
+                    localStorage.setItem('admin_data', JSON.stringify(data.data.admin));
+
+                    // Redirect to dashboard
+                    window.location.href = '/admin/dashboard';
+                } else {
+                    showError(data.message || 'Invalid credentials.');
+                }
+            } catch (err) {
+                showError('Connection error. Please try again.');
+            } finally {
+                btnText.classList.remove('hidden');
+                btnLoading.classList.add('hidden');
+            }
+        }
+
+        function showError(msg) {
+            const alert = document.getElementById('error-alert');
+            document.getElementById('error-msg').textContent = msg;
+            alert.classList.remove('hidden');
+        }
+
+        function togglePassword() {
+            const pwd = document.getElementById('password');
+            const icon = document.getElementById('eye-icon');
+            if (pwd.type === 'password') {
+                pwd.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                pwd.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+    </script>
+</body>
+</html>

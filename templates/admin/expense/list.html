@@ -1,0 +1,265 @@
+{% extends "admin/base.html" %}
+{% block title %}Expenses{% endblock %}
+{% block page_title %}Expense Management{% endblock %}
+{% block page_subtitle %}Track daily expenses{% endblock %}
+
+{% block content %}
+
+<!-- ── Top Bar ────────────────────────────────────────── -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div class="flex items-center gap-3">
+        <div class="bg-red-100 p-3 rounded-xl">
+            <i class="fas fa-receipt text-red-600 text-xl"></i>
+        </div>
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">Expense Tracker</h2>
+            <p class="text-sm text-gray-500" id="exp-subtitle">Loading...</p>
+        </div>
+    </div>
+    <a href="/admin/expenses/add"
+       class="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors">
+        <i class="fas fa-plus"></i> Add Expense
+    </a>
+</div>
+
+<!-- ── Summary Cards ──────────────────────────────────── -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-4 text-white shadow-md">
+        <i class="fas fa-money-bill-wave text-2xl mb-2 opacity-80"></i>
+        <p class="text-xl font-bold" id="total-exp">—</p>
+        <p class="text-red-100 text-xs">Total Expenses</p>
+    </div>
+    <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-4 text-white shadow-md">
+        <i class="fas fa-hard-hat text-2xl mb-2 opacity-80"></i>
+        <p class="text-xl font-bold" id="labour-exp">—</p>
+        <p class="text-orange-100 text-xs">Labour Expenses</p>
+    </div>
+    <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white shadow-md">
+        <i class="fas fa-boxes text-2xl mb-2 opacity-80"></i>
+        <p class="text-xl font-bold" id="other-exp">—</p>
+        <p class="text-blue-100 text-xs">Other Expenses</p>
+    </div>
+    <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-4 text-white shadow-md">
+        <i class="fas fa-calendar-day text-2xl mb-2 opacity-80"></i>
+        <p class="text-xl font-bold" id="today-exp">—</p>
+        <p class="text-purple-100 text-xs">Today's Total</p>
+    </div>
+</div>
+
+<!-- ── Filters ────────────────────────────────────────── -->
+<div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-5">
+    <div class="flex flex-col md:flex-row gap-3">
+        <div class="flex-1 relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" id="search-input"
+                   placeholder="Search expenses..."
+                   oninput="filterExpenses()"
+                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+        </div>
+        <select id="type-filter" onchange="filterExpenses()"
+                class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+            <option value="">All Types</option>
+            <option value="Labour Expenses">Labour Expenses</option>
+            <option value="Decoration Materials">Decoration Materials</option>
+            <option value="Transport Charges">Transport Charges</option>
+            <option value="Equipment Rental">Equipment Rental</option>
+            <option value="Food / Miscellaneous">Food / Miscellaneous</option>
+        </select>
+        <select id="month-filter" onchange="filterExpenses()"
+                class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+            <option value="">All Months</option>
+            <option value="1">January</option>
+            <option value="2">February</option>
+            <option value="3">March</option>
+            <option value="4">April</option>
+            <option value="5">May</option>
+            <option value="6">June</option>
+            <option value="7">July</option>
+            <option value="8">August</option>
+            <option value="9">September</option>
+            <option value="10">October</option>
+            <option value="11">November</option>
+            <option value="12">December</option>
+        </select>
+    </div>
+</div>
+
+<!-- ── Expense Table ──────────────────────────────────── -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">#</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Type</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Description</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Category</th>
+                    <th class="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Amount</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="expense-tbody" class="divide-y divide-gray-50">
+                <tr>
+                    <td colspan="7" class="text-center py-10 text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-2xl"></i>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ── Pagination ─────────────────────────────────────── -->
+<div id="pagination" class="flex justify-center gap-2 mt-5"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 1;
+
+async function loadExpenses(page = 1) {
+    currentPage = page;
+    const search = document.getElementById('search-input').value;
+    const expType = document.getElementById('type-filter').value;
+    const month = document.getElementById('month-filter').value;
+
+    let url = `/api/expenses/?page=${page}&per_page=15`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (expType) url += `&expense_type=${encodeURIComponent(expType)}`;
+    if (month) url += `&month=${month}`;
+
+    try {
+        const data = await apiRequest(url);
+        if (!data.success) return;
+
+        renderExpenses(data.data.expenses);
+        renderPagination(data.data.pages, page);
+
+        document.getElementById('exp-subtitle').textContent =
+            `${data.data.total} records — Total: ₹${(data.data.total_amount||0).toLocaleString('en-IN')}`;
+
+        // Use server-side total_amount for accurate summary (not page subset)
+        const labourTotal = data.data.labour_total || 0;
+        const otherTotal  = data.data.other_total  || 0;
+
+        document.getElementById('total-exp').textContent =
+            '₹' + (data.data.total_amount||0).toLocaleString('en-IN');
+        document.getElementById('labour-exp').textContent =
+            '₹' + labourTotal.toLocaleString('en-IN');
+        document.getElementById('other-exp').textContent =
+            '₹' + otherTotal.toLocaleString('en-IN');
+
+    } catch (e) {
+        showToast('Failed to load expenses', 'error');
+    }
+}
+
+async function loadTodayExp() {
+    const data = await apiRequest('/api/expenses/today');
+    if (data.success) {
+        document.getElementById('today-exp').textContent =
+            '₹' + (data.data.summary.grand_total||0).toLocaleString('en-IN');
+    }
+}
+
+function renderExpenses(expenses) {
+    const tbody = document.getElementById('expense-tbody');
+
+    if (expenses.length === 0) {
+        tbody.innerHTML = `
+            <tr><td colspan="7" class="text-center py-12 text-gray-400">
+                <i class="fas fa-receipt text-4xl mb-3 block"></i>
+                No expenses found.
+                <a href="/admin/expenses/add" class="text-purple-600 underline ml-1">Add one</a>
+            </td></tr>`;
+        return;
+    }
+
+    const typeColors = {
+        'Labour Expenses': 'bg-orange-100 text-orange-700',
+        'Decoration Materials': 'bg-pink-100 text-pink-700',
+        'Transport Charges': 'bg-blue-100 text-blue-700',
+        'Equipment Rental': 'bg-yellow-100 text-yellow-700',
+        'Food / Miscellaneous': 'bg-green-100 text-green-700'
+    };
+
+    tbody.innerHTML = expenses.map((e, i) => `
+        <tr class="hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4 text-sm text-gray-500">${i + 1}</td>
+            <td class="px-4 py-4 text-sm font-medium text-gray-800">
+                ${formatDate(e.expense_date)}
+            </td>
+            <td class="px-4 py-4">
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                    ${typeColors[e.expense_type] || 'bg-gray-100 text-gray-700'}">
+                    ${e.expense_type}
+                </span>
+            </td>
+            <td class="px-4 py-4 text-sm text-gray-600 max-w-xs truncate">
+                ${e.description || e.notes || '—'}
+            </td>
+            <td class="px-4 py-4 text-center">
+                <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                    ${e.category === 'Labour'
+                        ? 'bg-orange-100 text-orange-700'
+                        : 'bg-blue-100 text-blue-700'}">
+                    ${e.category}
+                </span>
+            </td>
+            <td class="px-6 py-4 text-right font-bold text-gray-800">
+                ₹${e.amount.toLocaleString('en-IN')}
+            </td>
+            <td class="px-4 py-4 text-center">
+                ${e.category !== 'Labour'
+                    ? `<button onclick="deleteExpense(${e.id})"
+                               class="text-red-400 hover:text-red-600 transition-colors p-1">
+                           <i class="fas fa-trash text-sm"></i>
+                       </button>`
+                    : '<span class="text-xs text-gray-400">Auto</span>'}
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderPagination(totalPages, current) {
+    const el = document.getElementById('pagination');
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+
+    let html = '';
+    for (let i = 1; i <= totalPages; i++) {
+        html += `
+            <button onclick="loadExpenses(${i})"
+                    class="w-9 h-9 rounded-lg text-sm font-medium transition-colors
+                    ${i === current
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-white text-gray-600 hover:bg-purple-50 border border-gray-200'}">
+                ${i}
+            </button>`;
+    }
+    el.innerHTML = html;
+}
+
+async function deleteExpense(id) {
+    if (!confirm('Delete this expense?')) return;
+    const data = await apiRequest(`/api/expenses/${id}`, 'DELETE');
+    if (data.success) {
+        showToast('Expense deleted', 'success');
+        loadExpenses(currentPage);
+    } else {
+        showToast(data.message, 'error');
+    }
+}
+
+function filterExpenses() {
+    clearTimeout(window._filterTimer);
+    window._filterTimer = setTimeout(() => loadExpenses(1), 400);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadExpenses(1);
+    loadTodayExp();
+});
+</script>
+{% endblock %}

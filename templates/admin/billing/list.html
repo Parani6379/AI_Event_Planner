@@ -1,0 +1,265 @@
+{% extends "admin/base.html" %}
+{% block title %}Billing{% endblock %}
+{% block page_title %}Billing & Invoices{% endblock %}
+{% block page_subtitle %}Manage all invoices and payments{% endblock %}
+
+{% block content %}
+
+<!-- ── Top Bar ────────────────────────────────────────── -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div class="flex items-center gap-3">
+        <div class="bg-green-100 p-3 rounded-xl">
+            <i class="fas fa-file-invoice-dollar text-green-600 text-xl"></i>
+        </div>
+        <div>
+            <h2 class="text-xl font-bold text-gray-800">Invoices</h2>
+            <p class="text-sm text-gray-500" id="billing-subtitle">Loading...</p>
+        </div>
+    </div>
+    <a href="/admin/billing/create"
+       class="flex items-center gap-2 px-5 py-2.5 bg-purple-600 text-white rounded-xl text-sm font-medium hover:bg-purple-700 transition-colors">
+        <i class="fas fa-plus"></i> New Invoice
+    </a>
+</div>
+
+<!-- ── Summary Cards ──────────────────────────────────── -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-2xl p-5 text-white shadow-md">
+        <i class="fas fa-rupee-sign text-2xl mb-2 opacity-80"></i>
+        <p class="text-2xl font-bold" id="total-revenue">—</p>
+        <p class="text-green-100 text-sm">Total Revenue</p>
+    </div>
+    <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-5 text-white shadow-md">
+        <i class="fas fa-check-circle text-2xl mb-2 opacity-80"></i>
+        <p class="text-2xl font-bold" id="total-collected">—</p>
+        <p class="text-blue-100 text-sm">Total Collected</p>
+    </div>
+    <div class="bg-gradient-to-br from-red-500 to-red-700 rounded-2xl p-5 text-white shadow-md">
+        <i class="fas fa-clock text-2xl mb-2 opacity-80"></i>
+        <p class="text-2xl font-bold" id="total-pending">—</p>
+        <p class="text-red-100 text-sm">Pending Amount</p>
+    </div>
+</div>
+
+<!-- ── Filters ────────────────────────────────────────── -->
+<div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-5">
+    <div class="flex flex-col md:flex-row gap-3">
+        <div class="flex-1 relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" id="search-input"
+                   placeholder="Search invoice, customer..."
+                   oninput="filterBillings()"
+                   class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+        </div>
+        <select id="status-filter" onchange="filterBillings()"
+                class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+            <option value="">All Status</option>
+            <option value="Paid">Paid</option>
+            <option value="Partially Paid">Partially Paid</option>
+            <option value="Pending">Pending</option>
+        </select>
+        <select id="month-filter" onchange="filterBillings()"
+                class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-purple-400">
+            <option value="">All Months</option>
+            <option value="1">January</option><option value="2">February</option>
+            <option value="3">March</option><option value="4">April</option>
+            <option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option>
+            <option value="9">September</option><option value="10">October</option>
+            <option value="11">November</option><option value="12">December</option>
+        </select>
+    </div>
+</div>
+
+<!-- ── Billing Table ───────────────────────────────────── -->
+<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Invoice</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Customer</th>
+                    <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Event</th>
+                    <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Grand Total</th>
+                    <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Advance</th>
+                    <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Pending</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Status</th>
+                    <th class="text-center px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="billing-tbody" class="divide-y divide-gray-50">
+                <tr>
+                    <td colspan="8" class="text-center py-12 text-gray-400">
+                        <i class="fas fa-spinner fa-spin text-3xl"></i>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ── Pagination ─────────────────────────────────────── -->
+<div id="pagination" class="flex justify-center gap-2 mt-5"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 1;
+
+async function loadBillings(page = 1) {
+    currentPage = page;
+    const search = document.getElementById('search-input').value;
+    const status = document.getElementById('status-filter').value;
+    const month = document.getElementById('month-filter').value;
+
+    let url = `/api/billing/?page=${page}&per_page=10`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (status) url += `&status=${encodeURIComponent(status)}`;
+    if (month) url += `&month=${month}`;
+
+    try {
+        const data = await apiRequest(url);
+        if (!data.success) return;
+
+        renderBillings(data.data.billings);
+        renderPagination(data.data.pages, page);
+
+        const s = data.data.summary;
+        document.getElementById('billing-subtitle').textContent =
+            `${data.data.total} invoice(s)`;
+        document.getElementById('total-revenue').textContent =
+            formatCurrency(s.total_revenue);
+        document.getElementById('total-collected').textContent =
+            formatCurrency(s.total_advance);
+        document.getElementById('total-pending').textContent =
+            formatCurrency(s.total_pending);
+
+    } catch (e) {
+        showToast('Failed to load', 'error');
+    }
+}
+
+function renderBillings(billings) {
+    const tbody = document.getElementById('billing-tbody');
+
+    if (billings.length === 0) {
+        tbody.innerHTML = `
+            <tr><td colspan="8" class="text-center py-14 text-gray-400">
+                <i class="fas fa-file-invoice text-4xl mb-3 block"></i>
+                No invoices found.
+                <a href="/admin/billing/create" class="text-purple-600 underline ml-1">Create one</a>
+            </td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = billings.map(b => `
+        <tr class="hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4">
+                <p class="text-sm font-bold text-purple-600">${b.invoice_number}</p>
+                <p class="text-xs text-gray-400">${formatDate(b.created_at)}</p>
+            </td>
+            <td class="px-4 py-4">
+                <p class="text-sm font-semibold text-gray-800">${b.customer_name}</p>
+                <p class="text-xs text-gray-500">${b.customer_phone}</p>
+            </td>
+            <td class="px-4 py-4">
+                <p class="text-sm text-gray-700">${b.event_type}</p>
+                <p class="text-xs text-gray-500">${formatDate(b.event_date)}</p>
+            </td>
+            <td class="px-4 py-4 text-right font-bold text-gray-800">
+                ${formatCurrency(b.grand_total)}
+            </td>
+            <td class="px-4 py-4 text-right font-medium text-green-600">
+                ${formatCurrency(b.advance_paid)}
+            </td>
+            <td class="px-4 py-4 text-right font-medium text-red-500">
+                ${formatCurrency(b.pending_amount)}
+            </td>
+            <td class="px-4 py-4 text-center">${statusBadge(b.billing_status)}</td>
+            <td class="px-4 py-4 text-center">
+                <div class="flex items-center justify-center gap-2">
+                    <a href="/admin/billing/${b.id}/invoice"
+                       class="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                       title="View Invoice">
+                        <i class="fas fa-eye text-xs"></i>
+                    </a>
+                    <button onclick="downloadPDF(${b.id}, '${b.invoice_number}')"
+                       class="p-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                       title="Download PDF">
+                        <i class="fas fa-file-pdf text-xs"></i>
+                    </button>
+                    <button onclick="updatePayment(${b.id}, ${b.advance_paid}, ${b.grand_total})"
+                            class="p-1.5 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 transition-colors"
+                            title="Update Payment">
+                        <i class="fas fa-rupee-sign text-xs"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function renderPagination(totalPages, current) {
+    const el = document.getElementById('pagination');
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+    let html = '';
+    for (let i = 1; i <= totalPages; i++) {
+        html += `<button onclick="loadBillings(${i})"
+                         class="w-9 h-9 rounded-lg text-sm font-medium transition-colors
+                         ${i === current ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-purple-50 border border-gray-200'}">
+                    ${i}</button>`;
+    }
+    el.innerHTML = html;
+}
+
+async function downloadPDF(id, invoiceNumber) {
+    try {
+        const response = await fetch(`/api/billing/${id}/pdf`, {
+            headers: { 'Authorization': `Bearer ${getToken()}` }
+        });
+        if (!response.ok) { showToast('PDF generation failed', 'error'); return; }
+        const blob = await response.blob();
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `${invoiceNumber || 'invoice-'+id}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('PDF downloaded!', 'success');
+    } catch(e) {
+        showToast('Download failed', 'error');
+    }
+}
+
+async function updatePayment(id, currentAdvance, grandTotal) {
+    const amount = prompt(
+        `Grand Total: ₹${grandTotal}\nCurrent Advance: ₹${currentAdvance}\n\nEnter new advance amount paid:`
+    );
+    if (!amount) return;
+
+    const mode = prompt('Payment Mode (Cash/UPI/Bank/Card):') || 'Cash';
+
+    const data = await apiRequest(`/api/billing/${id}/payment`, 'PUT', {
+        advance_paid: parseFloat(amount),
+        payment_mode: mode
+    });
+
+    if (data.success) {
+        showToast('Payment updated!', 'success');
+        loadBillings(currentPage);
+    } else {
+        showToast(data.message, 'error');
+    }
+}
+
+function filterBillings() {
+    clearTimeout(window._filterTimer);
+    window._filterTimer = setTimeout(() => loadBillings(1), 400);
+}
+
+document.addEventListener('DOMContentLoaded', () => loadBillings(1));
+</script>
+{% endblock %}
