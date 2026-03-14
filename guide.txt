@@ -37,17 +37,6 @@ STEP 3: Install Dependencies
 --------------------------------------------------------------
    pip install -r requirements.txt
 
-   This installs:
-   - flask           : Web framework
-   - flask-sqlalchemy : Database ORM
-   - flask-jwt-extended : Authentication
-   - flask-cors      : Cross-origin support
-   - pillow          : Image processing
-   - reportlab       : PDF / invoice generation
-   - requests        : HTTP client (for AI APIs)
-   - werkzeug        : WSGI utilities
-   - python-dotenv   : Environment variable loading
-
 
 STEP 4: Set Up the .env File
 --------------------------------------------------------------
@@ -66,26 +55,44 @@ STEP 4: Set Up the .env File
          and decoration preview features will be disabled.
 
 
-STEP 5: Run the Application
+STEP 5: Database Setup & Migration
+--------------------------------------------------------------
+   If you have an existing database or are setting up for the first time:
+   python migrate_db.py
+
+   This script ensures all required tables and columns are created correctly.
+
+
+STEP 6: Run the Application
 --------------------------------------------------------------
    python run.py
 
    You should see:
-      Default admin created: admin / admin123
+      ? Default admin created: admin / admin123 (if first run)
       * Running on http://0.0.0.0:5000
 
-   NOTE: The SQLite database and upload folders are created
-         automatically on the first run. No manual setup needed.
 
-
-STEP 6: Access the Application
+STEP 7: Access & Admin Credentials
 --------------------------------------------------------------
    Customer Homepage : http://localhost:5000/
    Admin Login       : http://localhost:5000/admin/login
 
-   Default Admin Credentials:
+   Default Admin Details:
       Username : admin
       Password : admin123
+
+   If you need to RESET or CREATE a custom Admin:
+   1. Open reset_admin.py and edit the ADMIN_EMAIL and ADMIN_PASSWORD.
+   2. Run: python reset_admin.py
+
+
+STEP 8: Troubleshooting
+--------------------------------------------------------------
+   - To verify the current admin account:
+     python verify_admin.py
+
+   - If you see "ModuleNotFoundError":
+     Make sure your virtual environment is active (Step 2).
 
 
 ==============================================================
@@ -98,6 +105,7 @@ STEP 6: Access the Application
    .\venv\Scripts\Activate
    pip install -r requirements.txt
    copy .env.example .env
+   python migrate_db.py
    python run.py
 
    Then open: http://localhost:5000
